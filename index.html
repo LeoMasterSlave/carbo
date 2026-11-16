@@ -115,6 +115,8 @@ img.prev{display:block;width:100%;max-height:220px;object-fit:cover;border-radiu
 .stp button:active{transform:scale(.94)}
 .stp input{width:88px;min-height:44px;text-align:center;padding:0;font:500 17px var(--sans)}
 .stp .gu{color:var(--mut);margin-left:var(--s1)}
+.chk{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--mut);font-size:15px;cursor:pointer}
+.chk input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--acc)}
 .tag{display:inline-block;margin-left:var(--s2);font:500 12px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--acc);border:1px solid currentColor;border-radius:6px;padding:3px 6px;vertical-align:2px}
 .tag.low{color:var(--danger)}
 .note{font-size:13px;color:var(--mut);margin:var(--s6) 0 0;line-height:1.5}
@@ -196,7 +198,7 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
   <label class="pri" id="pickBtn" for="photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Scegli o scatta una foto</label>
   <input id="photo" type="file" accept="image/*" class="sr">
   <div class="stack hide" id="afterPick">
-    <input id="hint" placeholder="Indizio facoltativo (es. “con pesto”)" aria-label="Indizio sul piatto">
+    <input id="hint" placeholder="Es. “126 g di pasta cruda”" aria-label="Indizio sul piatto">
     <button class="pri" id="analyze" type="button"><span class="spin hide" id="spin" aria-hidden="true"></span><span id="analyzeTxt">Analizza il piatto</span></button>
     <label class="txt" for="photo" style="justify-self:center">Cambia foto</label>
   </div>
@@ -306,7 +308,7 @@ function render(){
   }).join("")||'<div class="empty">Ancora nessun dato.</div>';
 }
 function renderCur(){
-  $("items").innerHTML=cur.length?cur.map((i,k)=>`<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${i.conf==="bassa"?"da verificare":"stima"}</span>`:""}<span class="sub">${r1(i.c100)} g ogni 100 g</span></div>
+  $("items").innerHTML=cur.length?cur.map((i,k)=>`<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${i.conf==="bassa"?"da verificare":"stima"}</span>`:""}<span class="sub">${r1(i.c100)} g ogni 100 g</span>${pairOf(i)?`<label class="chk"><input type="checkbox" data-raw="${k}" ${isRawName(i.n)?"checked":""}><span>Peso a crudo</span></label>`:""}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
    <div class="stp"><button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 grammi di ${esc(i.n)}">${I_MIN}</button>
@@ -338,6 +340,14 @@ $("items").addEventListener("input",e=>{
   const k=e.target.dataset.g;if(k==null)return;cur[k].g=Math.max(0,+e.target.value||0);
   e.target.closest(".item").querySelector(".c").textContent=r1(itemC(cur[k]));
   $("cur").textContent=total();
+});
+$("items").addEventListener("change",e=>{
+  const k=e.target.dataset.raw;if(k==null)return;
+  const i=cur[k],pr=pairOf(i);if(!pr)return;
+  const toRaw=e.target.checked,from=toRaw?pr.c:pr.r,to=toRaw?pr.r:pr.c;
+  i.g=Math.round(i.g*from.c/to.c);i.c100=to.c;
+  i.n=toRaw?(/cott[oa]/i.test(i.n)?i.n.replace(/cotta/i,"cruda").replace(/cotto/i,"crudo"):i.n+" (a crudo)"):i.n.replace(/\s*\(a crudo\)/i,"").replace(/cruda/i,"cotta").replace(/crudo/i,"cotto");
+  renderCur();
 });
 $("q").oninput=e=>{
   const q=e.target.value.trim().toLowerCase();
@@ -404,17 +414,24 @@ async function askModel(prov,model,key,b64,prompt,ctl){
     throw err;
   }finally{clearTimeout(to)}
 }
+const keyOf=f=>f.n.toLowerCase().split(/[ \/(]/)[0];
+const isRawName=s=>/crud[oa]/i.test(s);
 function dbMatch(name){
-  const n=String(name).toLowerCase();
+  const n=String(name).toLowerCase(),raw=isRawName(n);
   for(const f of DB){
-    const k=f.n.toLowerCase().split(/[ \/(]/)[0];
-    if(k.length>=4&&new RegExp("(^|[^a-zà-ú])"+k+"[aeio]?([^a-zà-ú]|$)").test(n))return f;
+    const k=keyOf(f);
+    if(k.length>=4&&isRawName(f.n)===raw&&new RegExp("(^|[^a-zà-ú])"+k+"[aeio]?([^a-zà-ú]|$)").test(n))return f;
   }
   return null;
 }
+function pairOf(i){
+  const f=dbMatch(i.n);if(!f)return null;const k=keyOf(f);
+  const c=DB.find(x=>keyOf(x)===k&&!isRawName(x.n)),r=DB.find(x=>keyOf(x)===k&&isRawName(x.n));
+  return c&&r?{c,r}:null;
+}
 function callAI(b64,hint,stage){
   const prov=getProv(),key=getKey(),models=prov==="gemini"?GEMINI_MODELS:CLAUDE_MODELS;
-  const prompt=`Sei un dietologo esperto di cucina italiana. Analizza la foto del pasto. Per ogni alimento distinto stima il PESO IN GRAMMI della porzione così com'è nel piatto (cotta, condita). Riferimenti: un piatto piano standard misura circa 26 cm e una forchetta circa 19 cm; un piatto di pasta o riso cotto è di 150 g se piccolo, 180-250 g se normale, 250-350 g se abbondante o se riempie il piatto: non sottostimare. Una fetta di pane pesa 30-40 g. Poi indica i grammi di carboidrati disponibili per 100 g di quell'alimento secondo le tabelle nutrizionali (es. pasta cotta 31, riso cotto 28, pane 55, patate lesse 17, pizza 33).${hint?" Indizio dell'utente: "+hint+".":""}
+  const prompt=`Sei un dietologo esperto di cucina italiana. Analizza la foto del pasto. Per ogni alimento distinto stima il PESO IN GRAMMI della porzione così com'è nel piatto (cotta, condita). Riferimenti: un piatto piano standard misura circa 26 cm e una forchetta circa 19 cm; un piatto di pasta o riso cotto è di 150 g se piccolo, 180-250 g se normale, 250-350 g se abbondante o se riempie il piatto: non sottostimare. Una fetta di pane pesa 30-40 g. Se l'indizio dell'utente contiene un peso (es. “126 g di pasta cruda”) usa quel peso: per pasta e riso pesati a crudo scrivi “cruda”/“crudo” nel nome e usa i carboidrati per 100 g del crudo (pasta cruda 72, riso crudo 80). Poi indica i grammi di carboidrati disponibili per 100 g di quell'alimento secondo le tabelle nutrizionali (es. pasta cotta 31, riso cotto 28, pane 55, patate lesse 17, pizza 33).${hint?" Indizio dell'utente: "+hint+".":""}
 Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
   return new Promise((resolve,reject)=>{
     let next=0,active=0,done=false,last=null,timer=null;const ctls=[];
