@@ -1,0 +1,29 @@
+{
+ "note": "Selezione curata (revisione 16/11/2026). Solo alimenti ASSENTI dal DB del motore. fdc = id USDA SR Legacy. units.seq = riga di food_portion.csv: i pesi USDA sono riferiti alla parte edibile (vedi 'yields', 'without refuse', 'pitted' nelle descrizioni). Escluse le misure a volume (cup) e le porzioni di etichetta USA (NLEA). Nessuna porzione inventata: se USDA non la fornisce, non c'è.",
+ "foods": [
+  {"n": "Ciliegie", "a": ["ciliegia", "ciliege"], "cat": "frutta", "fdc": 171719, "it": "Ciliegie dolci, crude",
+   "units": [{"seq": 3, "l": "1 ciliegia", "pl": "pezzo"}]},
+  {"n": "Albicocche", "a": ["albicocca"], "cat": "frutta", "fdc": 171697, "it": "Albicocche, crude",
+   "units": [{"seq": 3, "l": "1 albicocca", "pl": "pezzo"}]},
+  {"n": "Ananas", "a": ["ananas fresco"], "cat": "frutta", "fdc": 169124, "it": "Ananas, crudo, tutte le varietà",
+   "units": [{"seq": 5, "l": "1 fetta sottile (Ø 9 cm, 1,3 cm)", "pl": "pezzo"}, {"seq": 4, "l": "1 fetta (Ø 9 cm, 2 cm)", "pl": "pezzo"}, {"seq": 3, "l": "1 fetta grande (Ø 12 cm, 2 cm)", "pl": "pezzo"}]},
+  {"n": "Mandarini", "a": ["mandarino", "clementine", "clementina"], "cat": "frutta", "fdc": 169105, "it": "Mandarini, crudi",
+   "units": [{"seq": 2, "l": "1 piccolo (Ø 5,7 cm)", "pl": "pezzo"}, {"seq": 3, "l": "1 medio (Ø 6,4 cm)", "pl": "pezzo"}, {"seq": 4, "l": "1 grande (Ø 7 cm)", "pl": "pezzo"}]},
+  {"n": "Fichi", "a": ["fico", "fichi freschi"], "cat": "frutta", "fdc": 173021, "it": "Fichi freschi, crudi",
+   "units": [{"seq": 3, "l": "1 piccolo (Ø 3,8 cm)", "pl": "pezzo"}, {"seq": 2, "l": "1 medio (Ø 5,7 cm)", "pl": "pezzo"}, {"seq": 1, "l": "1 grande (Ø 6,4 cm)", "pl": "pezzo"}]},
+  {"n": "Prugne", "a": ["prugna", "susine", "susina", "prugne fresche"], "cat": "frutta", "fdc": 169949, "it": "Prugne fresche, crude",
+   "units": [{"seq": 2, "l": "1 prugna (Ø 5,4 cm)", "pl": "pezzo"}]},
+  {"n": "Mango", "cat": "frutta", "fdc": 169910, "it": "Mango, crudo",
+   "units": [{"seq": 2, "l": "1 mango, senza buccia né nocciolo", "pl": "pezzo"}]},
+  {"n": "Melone cantalupo", "a": ["melone", "melone retato", "melone giallo"], "cat": "frutta", "fdc": 169092, "it": "Melone cantalupo, crudo",
+   "units": [{"seq": 9, "l": "1 fetta, 1/8 di melone piccolo", "pl": "pezzo"}, {"seq": 7, "l": "1 fetta, 1/8 di melone medio", "pl": "pezzo"}, {"seq": 5, "l": "1 fetta, 1/8 di melone grande", "pl": "pezzo"}]},
+  {"n": "Datteri Medjool", "a": ["datteri", "dattero", "dattero medjool"], "cat": "frutta secca", "fdc": 168191, "it": "Datteri Medjool",
+   "units": [{"seq": 1, "l": "1 dattero, senza nocciolo", "pl": "pezzo"}]}
+ ],
+ "excluded": [
+  {"n": "Pesche sciroppate", "fdc": 169112, "why": "Sciroppo denso USA (heavy syrup), solidi + liquido: il valore dipende dal prodotto. Usare il codice a barre."},
+  {"n": "Bevanda alle mandorle non zuccherata", "fdc": 174832, "why": "Dati incoerenti: 1 cup = 262 g implica densità 1,11 con 96,5% di acqua. Prodotti molto variabili: usare il codice a barre."},
+  {"n": "Bevanda di soia", "fdc": 172446, "why": "Prodotto USA zuccherato (original/vanilla); le bevande italiane variano molto. Usare il codice a barre."},
+  {"n": "Tè freddo al limone", "fdc": 175110, "why": "Prodotto di marca USA (Arizona), non rappresentativo. Usare il codice a barre."}
+ ]
+}

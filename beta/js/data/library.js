@@ -49,10 +49,11 @@ export function snapFood(i) {
   const f = { n: String(i.n).slice(0, 80), c100: r2(+i.c100 || 0), u: i.u === "ml" ? "ml" : "g" };
   if (i.db) f.ref = i.db;
   if (i.ean) f.ean = i.ean;
-  if (i.pz && i.pz.w > 0) f.pz = { w: i.pz.w, l: i.pz.l === "porzione" ? "porzione" : "pezzo" };
+  if (i.cid) f.cid = i.cid; // voce del catalogo esterno (es. "usda:171719"), distinta da ref
+  if (i.pz && i.pz.w > 0) f.pz = { w: i.pz.w, l: i.pz.l === "porzione" ? "porzione" : "pezzo", ...(i.pz.t ? { t: String(i.pz.t).slice(0, 60) } : {}) };
   return f;
 }
-export const foodKey = f => f.ref ?"db:" + f.ref : "n:" + String(f.n).toLowerCase().trim() + "|" + r2(f.c100) + "|" + (f.u || "g");
+export const foodKey = f => f.ref ? "db:" + f.ref : f.cid ? "c:" + f.cid + "|" + r2(f.c100) : "n:" + String(f.n).toLowerCase().trim() + "|" + r2(f.c100) + "|" + (f.u || "g");
 
 // ---- preferiti {id, n, c100, u, ref?, g}
 export function findFav(lib, item) { const k = foodKey(snapFood(item)); return lib.favorites.find(f => foodKey(f) === k) || null }

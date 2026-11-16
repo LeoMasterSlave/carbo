@@ -78,7 +78,8 @@ export function rememberProduct(lib, p, edited) {
 // {w,l} valido (peso del pezzo tra 0,1 e 1000 g) oppure null.
 export function cleanPz(pz) {
   const w = pz && Math.round(+pz.w * 10) / 10;
-  return w >= 0.1 && w <= 1000 ? { w, l: pz.l === "porzione" ? "porzione" : "pezzo" } : null;
+  // t = descrizione facoltativa della porzione scelta (es. "1 medio (Ø 6,4 cm)")
+  return w >= 0.1 && w <= 1000 ? { w, l: pz.l === "porzione" ? "porzione" : "pezzo", ...(pz.t ? { t: String(pz.t).slice(0, 60) } : {}) } : null;
 }
 export const pzPlural = (l, n) => l === "porzione" ? (n === 1 ? "porzione" : "porzioni") : (n === 1 ? "pezzo" : "pezzi");
 

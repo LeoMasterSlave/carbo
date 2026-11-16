@@ -1,0 +1,373 @@
+{
+ "format": "carbo-catalog",
+ "version": 1,
+ "generated": "2026-11-16",
+ "basis": "g di carboidrati disponibili per 100 g di parte edibile",
+ "sources": {
+  "usda": {
+   "name": "USDA FoodData Central",
+   "dataset": "USDA FoodData Central, SR Legacy (04/2018)",
+   "license": "CC0 1.0",
+   "citation": "U.S. Department of Agriculture, Agricultural Research Service. FoodData Central. fdc.nal.usda.gov"
+  }
+ },
+ "foods": [
+  {
+   "cid": "usda:171719",
+   "n": "Ciliegie",
+   "a": [
+    "ciliegia",
+    "ciliege"
+   ],
+   "cat": "frutta",
+   "it": "Ciliegie dolci, crude",
+   "c100": 13.9,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 ciliegia",
+     "w": 8.2,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 cherry"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 171719,
+    "desc": "Cherries, sweet, raw",
+    "orig": {
+     "cbd": 16.01,
+     "sugars": 12.82,
+     "starch": 0,
+     "fiber": 2.1
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:171697",
+   "n": "Albicocche",
+   "a": [
+    "albicocca"
+   ],
+   "cat": "frutta",
+   "it": "Albicocche, crude",
+   "c100": 9.1,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 albicocca",
+     "w": 35,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 apricot"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 171697,
+    "desc": "Apricots, raw",
+    "orig": {
+     "fiber": 2,
+     "cbd": 11.12,
+     "sugars": 9.24
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:169124",
+   "n": "Ananas",
+   "a": [
+    "ananas fresco"
+   ],
+   "cat": "frutta",
+   "it": "Ananas, crudo, tutte le varietà",
+   "c100": 11.7,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 fetta sottile (Ø 9 cm, 1,3 cm)",
+     "w": 56,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 slice, thin (3-1/2\" dia x 1/2\" thick)"
+    },
+    {
+     "t": "1 fetta (Ø 9 cm, 2 cm)",
+     "w": 84,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 slice (3-1/2\" dia x 3/4\" thick)"
+    },
+    {
+     "t": "1 fetta grande (Ø 12 cm, 2 cm)",
+     "w": 166,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 slice (4-2/3\" dia x 3/4\" thick)"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 169124,
+    "desc": "Pineapple, raw, all varieties",
+    "orig": {
+     "sugars": 9.85,
+     "fiber": 1.4,
+     "starch": 0,
+     "cbd": 13.12
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:169105",
+   "n": "Mandarini",
+   "a": [
+    "mandarino",
+    "clementine",
+    "clementina"
+   ],
+   "cat": "frutta",
+   "it": "Mandarini, crudi",
+   "c100": 11.5,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 piccolo (Ø 5,7 cm)",
+     "w": 76,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 small (2-1/4\" dia)"
+    },
+    {
+     "t": "1 medio (Ø 6,4 cm)",
+     "w": 88,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 medium (2-1/2\" dia)"
+    },
+    {
+     "t": "1 grande (Ø 7 cm)",
+     "w": 120,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 large (2-3/4\" dia)"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 169105,
+    "desc": "Tangerines, (mandarin oranges), raw",
+    "orig": {
+     "cbd": 13.34,
+     "sugars": 10.58,
+     "starch": 0,
+     "fiber": 1.8
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:173021",
+   "n": "Fichi",
+   "a": [
+    "fico",
+    "fichi freschi"
+   ],
+   "cat": "frutta",
+   "it": "Fichi freschi, crudi",
+   "c100": 16.3,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 piccolo (Ø 3,8 cm)",
+     "w": 40,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 small (1-1/2\" dia)"
+    },
+    {
+     "t": "1 medio (Ø 5,7 cm)",
+     "w": 50,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 medium (2-1/4\" dia)"
+    },
+    {
+     "t": "1 grande (Ø 6,4 cm)",
+     "w": 64,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 large (2-1/2\" dia)"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 173021,
+    "desc": "Figs, raw",
+    "orig": {
+     "cbd": 19.18,
+     "fiber": 2.9,
+     "sugars": 16.26
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:169949",
+   "n": "Prugne",
+   "a": [
+    "prugna",
+    "susine",
+    "susina",
+    "prugne fresche"
+   ],
+   "cat": "frutta",
+   "it": "Prugne fresche, crude",
+   "c100": 10,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 prugna (Ø 5,4 cm)",
+     "w": 66,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 fruit (2-1/8\" dia)"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 169949,
+    "desc": "Plums, raw",
+    "orig": {
+     "cbd": 11.42,
+     "starch": 0,
+     "fiber": 1.4,
+     "sugars": 9.92
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:169910",
+   "n": "Mango",
+   "cat": "frutta",
+   "it": "Mango, crudo",
+   "c100": 13.4,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 mango, senza buccia né nocciolo",
+     "w": 336,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 fruit without refuse"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 169910,
+    "desc": "Mangos, raw",
+    "orig": {
+     "fiber": 1.6,
+     "cbd": 14.98,
+     "sugars": 13.66
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:169092",
+   "n": "Melone cantalupo",
+   "a": [
+    "melone",
+    "melone retato",
+    "melone giallo"
+   ],
+   "cat": "frutta",
+   "it": "Melone cantalupo, crudo",
+   "c100": 7.3,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 fetta, 1/8 di melone piccolo",
+     "w": 55,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 wedge, small (1/8 of small melon)"
+    },
+    {
+     "t": "1 fetta, 1/8 di melone medio",
+     "w": 69,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 wedge, medium (1/8 of medium melon)"
+    },
+    {
+     "t": "1 fetta, 1/8 di melone grande",
+     "w": 102,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 wedge, large (1/8 of large melon)"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 169092,
+    "desc": "Melons, cantaloupe, raw",
+    "orig": {
+     "sugars": 7.86,
+     "cbd": 8.16,
+     "fiber": 0.9,
+     "starch": 0.03
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  },
+  {
+   "cid": "usda:168191",
+   "n": "Datteri Medjool",
+   "a": [
+    "datteri",
+    "dattero",
+    "dattero medjool"
+   ],
+   "cat": "frutta secca",
+   "it": "Datteri Medjool",
+   "c100": 68.3,
+   "u": "g",
+   "units": [
+    {
+     "t": "1 dattero, senza nocciolo",
+     "w": 24,
+     "l": "pezzo",
+     "base": "edibile",
+     "src": "USDA: 1 date, pitted"
+    }
+   ],
+   "src": {
+    "db": "usda",
+    "ds": "USDA FoodData Central, SR Legacy (04/2018)",
+    "id": 168191,
+    "desc": "Dates, medjool",
+    "orig": {
+     "sugars": 66.47,
+     "fiber": 6.7,
+     "cbd": 74.97
+    },
+    "formula": "carboidrati per differenza − fibra totale"
+   }
+  }
+ ]
+}

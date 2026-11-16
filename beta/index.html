@@ -83,7 +83,7 @@
     <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p>
   </div>
   <div class="group"><h2>Applicazione</h2>
-    <div class="list"><div class="row"><span>Versione</span><span class="mut" id="ver"></span></div></div>
+    <div class="list"><button class="row nav-row" type="button" data-panel="src"><span>Fonti dei dati</span><span class="mut"></span></button><div class="row"><span>Versione</span><span class="mut" id="ver"></span></div></div>
     <p class="note">Carbo fornisce stime indicative e non è un dispositivo medico.</p>
   </div>
  </div>
@@ -99,6 +99,18 @@
   <p class="lead">Componi il piatto con gli ingredienti, poi tocca “Salva come ricetta”. Modificare una ricetta non cambia i pasti già registrati.</p>
   <button class="pri" type="button" id="newRecipe">Nuova ricetta</button>
   <div id="rcpList"></div>
+ </div>
+ <div id="p-src" class="panel hide">
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <h1>Fonti dei dati</h1>
+  <p class="lead">Ogni alimento indica da dove viene il suo valore. Tutti i valori sono grammi di carboidrati disponibili ogni 100 g di parte edibile (ogni 100 ml per le bevande). I pasti salvati conservano il valore usato in quel momento.</p>
+  <ul class="srcl">
+   <li><h3>Carbo <span class="st on">in uso</span></h3><p>Database interno di Carbo, lo stesso che corregge le stime delle foto. Valori medi; alcune voci riportano la fonte o sono segnate come provvisorie.</p></li>
+   <li><h3>USDA FoodData Central <span class="st on">in uso</span></h3><p>Alimenti non presenti nel database interno (per ora frutta). Dataset SR Legacy (aprile 2018), pubblico dominio (CC0 1.0). Carboidrati per differenza meno fibra totale. Porzioni dai pesi USDA della parte edibile.</p><p>U.S. Department of Agriculture, Agricultural Research Service. FoodData Central. <a href="https://fdc.nal.usda.gov" target="_blank" rel="noopener">fdc.nal.usda.gov</a></p></li>
+   <li><h3>Open Food Facts <span class="st on">in uso</span></h3><p>Prodotti confezionati cercati con il codice a barre: valori dichiarati in etichetta. Viene inviato solo il codice a barre.</p><p>© Open Food Facts contributors, licenza <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">openfoodfacts.org</a></p></li>
+   <li><h3>CREA Alimenti e Nutrizione <span class="st">non integrato</span></h3><p>Tabelle di composizione degli alimenti italiane. Non ancora usate in Carbo: le condizioni di riutilizzo dei dati sono in verifica.</p></li>
+   <li><h3>Inseriti da te <span class="st on">in uso</span></h3><p>Alimenti personalizzati, prodotti corretti a mano, preferiti e ricette: restano solo su questo telefono.</p></li>
+  </ul>
  </div>
 </section>
 </main>

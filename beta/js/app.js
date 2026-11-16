@@ -5,6 +5,7 @@ import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
 import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
+import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf}from"./data/catalog.js";
 
 const $=id=>document.getElementById(id);
 let cur=[];
@@ -82,12 +83,14 @@ const LVL_TXT={alta:"Confidenza alta",media:"Confidenza media",bassa:"Confidenza
 function renderCur(){
   const itemHTML=(i,k)=>{
     const u=i.u||"g",ask=i.ask||[],pr=pairOf(i);
-    const tags=(i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${LVL_TXT[i.conf||"media"]}</span>`:"")+(i.prov?`<span class="tag">provvisorio</span>`:"")+(i.rid?`<span class="tag">ricetta</span>`:"");
+    const tags=(i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${LVL_TXT[i.conf||"media"]}</span>`:"")+(i.prov?`<span class="tag">provvisorio</span>`:"")+(i.rid?`<span class="tag">ricetta</span>`:"")+(i.cid&&SRC_LABEL[srcOf(i.cid)]?`<span class="tag src">${SRC_LABEL[srcOf(i.cid)]}</span>`:"");
+    // porzioni convenzionali: si applicano solo toccandole
+    const chips=i.units&&i.units.length?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${i.units.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} g</button>`}).join("")}</div>`:"";
     const fv=!i.rid&&findFav(lib,i);
     const star=i.rid?"":`<button class="favb${fv?" on":""}" data-fav="${k}" type="button" aria-pressed="${fv?"true":"false"}" aria-label="${fv?"Togli dai preferiti":"Aggiungi ai preferiti"} ${esc(i.n)}">${fv?I_STAR_ON:I_STAR}</button>`;
     const askH=ask.length||(i.cand&&i.cand.length)?`<div class="ask ${ask.some(a=>a.b)?"":"ok"}" role="status">${ask.map(a=>esc(a.t)).join(" · ")}${i.cand&&i.cand.length?`<div>${i.cand.map(c=>`<button class="alt" data-alt="${k}" data-n="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`:""}${i.g>0&&ask.length?`<div><button class="alt" data-ok="${k}" type="button">Confermo</button></div>`:""}</div>`:"";
     const pz=i.pz&&i.pz.w>0?i.pz:null,byPz=pz&&!i.pzG;
-    const pzSub=pz?`<span class="sub">1 ${pz.l} = ${fmt(pz.w)} g (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} g in tutto`:""}</span>`:"";
+    const pzSub=pz?`<span class="sub">${esc(pz.t||"1 "+pz.l)} = ${fmt(pz.w)} g (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} g in tutto`:""}</span>`:"";
     const unitH=pz?`<button class="gu pzu" data-pzu="${k}" type="button" aria-label="${byPz?"Inserisci in grammi":"Inserisci a "+pzPlural(pz.l,2)}">${byPz?(pz.l==="porzione"?"porz.":"pz"):u}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg></button>`:`<span class="gu">${u}</span>`;
     const stepH=byPz
       ?`<button data-pstep="${k}" data-d="-1" type="button" aria-label="Un ${pz.l} in meno di ${esc(i.n)}">${I_MIN}</button>
@@ -96,7 +99,7 @@ function renderCur(){
       :`<button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
    <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}">${unitH}
    <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>`;
-    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}<span class="sub">${r1(i.c100)} g ogni 100 ${u}</span>${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${askH}</div>
+    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}<span class="sub">${r1(i.c100)} g ogni 100 ${u}</span>${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
    <div class="stp">${stepH}${star}</div></div>`};
@@ -203,6 +206,12 @@ document.body.addEventListener("click",e=>{
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
   const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step,it=cur[k];it.g=Math.max(0,Math.round(it.g)+(+s.dataset.d));setWeight(it);renderCur()}
   const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);setWeight(it);renderCur()}
+  const ch=e.target.closest("[data-unit]");if(ch){
+    // tocco esplicito su una porzione: 1 porzione, poi si conta a pezzi; resta modificabile a mano
+    const it=cur[+ch.dataset.unit],x=it&&it.units&&it.units[+ch.dataset.ui];
+    if(x){it.pz=cleanPz({w:x.w,l:x.l,t:x.t});it.pzG=false;it.g=it.pz.w;setWeight(it);renderCur()}
+    return;
+  }
   const pu=e.target.closest("[data-pzu]");if(pu){const it=cur[+pu.dataset.pzu];it.pzG=!it.pzG;renderCur();const f=document.querySelector(`[data-pn="${pu.dataset.pzu}"],[data-g="${pu.dataset.pzu}"]`);if(f)f.focus()}
   const ok=e.target.closest("[data-ok]");if(ok){const it=cur[+ok.dataset.ok];it.ask=[];it.cand=[];relevel(it);renderCur()}
   const alt=e.target.closest("[data-alt]");if(alt){const it=cur[+alt.dataset.alt],f=dbByName(alt.dataset.n);if(f){const u0=it.u||"g";it.n=f.n;it.c100=f.c;it.db=f.n;it.st=f.st||null;it.prov=!!f.p;it.cand=[];it.ask=it.ask.filter(a=>a.k==="weight");if(f.cmp)it.ask.push({k:"cmp",t:f.nt||"Piatto composto"});setUnit(it,f,u0);it.lvl="media";relevel(it);renderCur()}}
@@ -238,9 +247,28 @@ function renderSug(){
   const rc=lib.recipes.filter(r=>fold(r.n).includes(qf)).slice(0,4).map(rcpRow);
   const fv=lib.favorites.filter(f=>fold(f.n).includes(qf)).slice(0,4).map(favRow);
   const rank=f=>{const n=f.n.toLowerCase();return n===q?0:n.startsWith(q)?1:(f.a||[]).some(a=>a===q)?2:3};
-  const db=DB.filter(f=>f.n.toLowerCase().includes(q)||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn))).map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}</small></button>`);
-  $("sug").innerHTML=(rc.length||fv.length?grp("Ricette",rc)+grp("Preferiti",fv)+grp("Alimenti",db):db.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
+  // prodotti salvati sul telefono (scansionati o inseriti a mano)
+  const pr=Object.entries(lib.products||{}).filter(([,p])=>p&&p.n&&fold(productLabel(p)).includes(qf)).slice(0,4)
+    .map(([ean,p])=>`<button class="sug" type="button" data-pk="${esc(ean)}"><span>${esc(productLabel(p))}</span><small>${fmt(p.c100)} g/100 ${p.u||"g"}${srcTag(p.src==="off"?"off":"manual")}</small></button>`);
+  // DB del motore: stessa ricerca di prima, solo lettura
+  const dbAll=DB.filter(f=>f.n.toLowerCase().includes(q)||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn)));
+  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${srcTag("db")}</small></button>`);
+  // catalogo esterno: dopo il DB; una voce con lo stesso nome e valore simile (±10%) a una del DB non si ripete
+  const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
+  const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
+    .sort((a,b)=>rank(a)-rank(b)).slice(0,6)
+    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${fmt(f.c100)} g/100 ${f.u}${f.units.length?" · porzioni":""}${srcTag(srcOf(f.cid))}</small></button>`);
+  const foods=[...db,...cat];
+  $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Ricette",rc)+grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
 }
+const srcTag=s=>SRC_LABEL[s]?` · <span class="srct">${SRC_LABEL[s]}</span>`:"";
+// Elemento del piatto da una voce del catalogo: peso da inserire o porzione da scegliere (mai applicata da sola).
+function itemFromCat(f){
+  const i={n:f.n,g:0,u:f.u||"g",c100:f.c100,cid:f.cid,units:f.units||[],ask:[{k:"weight",t:f.units&&f.units.length?"Scegli una porzione o inserisci il peso":"Inserisci il peso",b:1}],cand:[]};
+  relevel(i);return i;
+}
+// Porzioni del catalogo per uno snapshot salvato, solo se il valore nutrizionale coincide ancora.
+const unitsFor=s=>{const c=s.cid&&catByCid(s.cid);return c&&c.c100===s.c100?c.units:null};
 $("q").oninput=renderSug;
 // Elemento del piatto da uno snapshot di alimento (preferito o recente), con la quantità abituale.
 function itemFromFood(f,g){
@@ -249,6 +277,7 @@ function itemFromFood(f,g){
   if(d&&d.c===f.c100&&(d.u||"g")===(f.u||"g")){i=fromDB(d);i.n=f.n}
   else i={n:f.n,g:0,u:f.u||"g",c100:f.c100,ask:[{k:"weight",t:"Inserisci il peso",b:1}],cand:[]};
   if(f.ean)i.ean=f.ean;
+  if(f.cid){i.cid=f.cid;const u=unitsFor(f);if(u)i.units=u}
   if(cleanPz(f.pz))i.pz=cleanPz(f.pz);
   if(g>0){i.g=g;setWeight(i)}else relevel(i);
   return i;
@@ -260,6 +289,12 @@ function addToPlate(i,label){
 $("sug").onclick=e=>{
   const s=e.target.closest("[data-f]");
   if(s){const f=DB[+s.dataset.f];cur.push(fromDB(f));$("q").value="";renderSug();renderCur();return}
+  const c=e.target.closest("[data-c]");
+  if(c){const f=catByCid(c.dataset.c);if(f){cur.push(itemFromCat(f));$("q").value="";renderSug();renderCur()}return}
+  const pk=e.target.closest("[data-pk]");
+  if(pk){const p=lib.products&&lib.products[pk.dataset.pk];if(p){
+    const it={n:productLabel(p),g:0,u:p.u||"g",c100:p.c100,ean:pk.dataset.pk,ask:[{k:"weight",t:"Inserisci la quantità",b:1}],cand:[]};
+    if(cleanPz(p.pz))it.pz=cleanPz(p.pz);relevel(it);cur.push(it);$("q").value="";renderSug();renderCur()}return}
   const p=e.target.closest("[data-pick]");if(!p)return;
   const k=p.dataset.k;
   if(p.dataset.pick==="fav"){const f=lib.favorites.find(x=>x.id===k);if(f)addToPlate(itemFromFood(f,f.g))}
@@ -281,7 +316,7 @@ $("save").onclick=()=>{
   if(blocked()){showBlock=true;renderCur();$("items").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});return}
   const t=total(),type=mealType();
   // snapshot dei valori usati ora: i pasti non dipendono da preferiti, ricette o database
-  const items=cur.map(i=>({n:i.n,g:i.g,u:i.u||"g",c100:i.c100,...(i.db?{ref:i.db}:{}),...(i.rid?{rid:i.rid}:{}),...(i.ean?{ean:i.ean}:{}),...(cleanPz(i.pz)?{pz:cleanPz(i.pz)}:{})}));
+  const items=cur.map(i=>({n:i.n,g:i.g,u:i.u||"g",c100:i.c100,...(i.db?{ref:i.db}:{}),...(i.rid?{rid:i.rid}:{}),...(i.ean?{ean:i.ean}:{}),...(i.cid?{cid:i.cid}:{}),...(cleanPz(i.pz)?{pz:cleanPz(i.pz)}:{})}));
   const old=editId&&state.meals.find(m=>m.id===editId);
   if(old){old.type=type;old.items=items;old.total=t;old.edited=Date.now()}
   else state.meals.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),type,items,total:t});
@@ -297,6 +332,7 @@ function itemFromSaved(s){
   if(d&&d.c===s.c100){i.db=d.n;i.st=d.st||null;i.prov=!!d.p}
   if(s.rid)i.rid=s.rid;
   if(s.ean)i.ean=s.ean;
+  if(s.cid){i.cid=s.cid;const u=unitsFor(s);if(u)i.units=u}
   if(cleanPz(s.pz))i.pz=cleanPz(s.pz);
   relevel(i);return i;
 }
@@ -414,6 +450,7 @@ function showPanel(p){
   $("altroMain").classList.toggle("hide",!!panel);
   $("p-fav").classList.toggle("hide",panel!=="fav");
   $("p-rcp").classList.toggle("hide",panel!=="rcp");
+  $("p-src").classList.toggle("hide",panel!=="src");
   renderLibPanels();window.scrollTo(0,0);
 }
 const favSum=f=>[f.g>0?`${qty(f.g,f.u,f.pz)} abituali`:"quantità non impostata",`${fmt(f.c100)} g/100 ${f.u}`].join(" · ");
@@ -702,3 +739,5 @@ setType(defaultType());
 showLastBackup();
 renderRem();
 render();renderCur();checkKey();renderLibPanels();
+// catalogo esterno in background: la ricerca lo usa appena è pronto
+loadCatalog().then(()=>{if(sheetOpen)renderSug();if(cur.some(i=>i.cid&&!i.units)){cur.forEach(i=>{if(i.cid&&!i.units){const u=unitsFor(i);if(u)i.units=u}});renderCur()}});
