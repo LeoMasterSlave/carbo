@@ -228,6 +228,7 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
   <h1>Impostazioni</h1>
   <div class="sec" style="margin-top:0"><h2>Analisi con AI</h2>
     <label class="fld"><span>Servizio</span><select id="prov"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select></label>
+    <label class="fld"><span>Modello</span><select id="mdl"><option value="fast">Veloce (consigliato)</option><option value="accurate">Più accurato, più lento</option></select></label>
     <label class="fld"><span>Chiave API</span><input id="key" type="password" placeholder="Incolla qui la chiave" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     <button class="sbtn2" id="testKey" type="button">Verifica chiave</button>
     <p class="msg" id="keymsg" role="status" aria-live="polite">La chiave resta solo su questo telefono.</p>
@@ -365,8 +366,11 @@ $("save").onclick=()=>{
 };
 
 // ---- AI: foto -> stima
-const GEMINI_MODELS=["gemini-2.5-flash","gemini-flash-latest","gemini-2.5-flash-lite"];
-const CLAUDE_MODELS=["claude-sonnet-5-5","claude-haiku-5-5"];
+const MODELS={
+  gemini:{fast:["gemini-2.5-flash-lite","gemini-flash-lite-latest","gemini-2.5-flash"],accurate:["gemini-2.5-flash","gemini-flash-latest","gemini-2.5-flash-lite"]},
+  anthropic:{fast:["claude-haiku-5-5","claude-sonnet-5-5"],accurate:["claude-sonnet-5-5","claude-haiku-5-5"]}
+};
+const getMode=()=>{try{return localStorage.getItem("carbo_mode")||"fast"}catch(e){return "fast"}};
 let photoBlob=null,busy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -430,7 +434,7 @@ function pairOf(i){
   return c&&r?{c,r}:null;
 }
 function callAI(b64,hint,stage){
-  const prov=getProv(),key=getKey(),models=prov==="gemini"?GEMINI_MODELS:CLAUDE_MODELS;
+  const prov=getProv(),key=getKey(),models=MODELS[prov][getMode()];
   const prompt=`Sei un dietologo esperto di cucina italiana. Analizza la foto del pasto. Per ogni alimento distinto stima il PESO IN GRAMMI della porzione così com'è nel piatto (cotta, condita). Riferimenti: un piatto piano standard misura circa 26 cm e una forchetta circa 19 cm; un piatto di pasta o riso cotto è di 150 g se piccolo, 180-250 g se normale, 250-350 g se abbondante o se riempie il piatto: non sottostimare. Una fetta di pane pesa 30-40 g. Se l'indizio dell'utente contiene un peso (es. “126 g di pasta cruda”) usa quel peso: per pasta e riso pesati a crudo scrivi “cruda”/“crudo” nel nome e usa i carboidrati per 100 g del crudo (pasta cruda 72, riso crudo 80). Poi indica i grammi di carboidrati disponibili per 100 g di quell'alimento secondo le tabelle nutrizionali (es. pasta cotta 31, riso cotto 28, pane 55, patate lesse 17, pizza 33).${hint?" Indizio dell'utente: "+hint+".":""}
 Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
   return new Promise((resolve,reject)=>{
@@ -449,7 +453,7 @@ Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":n
           else if(active===0){if(last.status!==429)last.message="Il servizio AI è sovraccarico: ho provato "+models.length+" modelli. Riprova tra qualche minuto o aggiungi a mano.";finish(reject,last)}
         });
       clearTimeout(timer);
-      if(next<models.length)timer=setTimeout(launch,6000);
+      if(next<models.length)timer=setTimeout(launch,5000);
     };
     launch();
   });
@@ -483,7 +487,7 @@ async function analyze(){
       cur=cur.filter(i=>!i.ai);
       items.forEach(i=>{const f=dbMatch(i.nome);cur.push({n:String(i.nome),g:+i.grammi,c100:f?f.c:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza})});
       renderCur();
-      setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Controlla i grammi qui sotto.`+(/lite/.test(model)?" Stima fatta con un modello leggero: verifica bene i pesi.":""),"ok");
+      setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Controlla i grammi qui sotto.`,"ok");
       $("secPiatto").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
     }
     $("analyzeTxt").textContent="Analizza di nuovo";
@@ -514,6 +518,7 @@ $("wipe").onclick=()=>{
   else{b.dataset.arm="1";b.textContent="Tocca di nuovo per confermare";wipeT=setTimeout(()=>{delete b.dataset.arm;b.textContent="Cancella tutti i pasti"},4000)}
 };
 
+$("mdl").value=getMode();$("mdl").onchange=e=>{try{localStorage.setItem("carbo_mode",e.target.value)}catch(x){}};
 $("prov").value=getProv();$("key").value=getKey();
 $("prov").onchange=e=>{try{localStorage.setItem("carbo_prov",e.target.value)}catch(x){}$("key").value=getKey()};
 $("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.value.trim())}catch(x){}$("keymsg").className="msg ok";$("keymsg").textContent="Chiave salvata su questo telefono.";checkKey()};
