@@ -355,7 +355,7 @@ $("save").onclick=()=>{
 };
 
 // ---- AI: foto -> stima
-const GEMINI_MODELS=["gemini-flash-latest","gemini-2.5-flash","gemini-flash-lite-latest","gemini-2.5-flash-lite"];
+const GEMINI_MODELS=["gemini-2.5-flash","gemini-flash-latest","gemini-2.5-flash-lite"];
 const CLAUDE_MODELS=["claude-sonnet-5-5","claude-haiku-5-5"];
 let photoBlob=null,busy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -367,7 +367,7 @@ async function shrink(file){
   let bmp;
   try{bmp=await createImageBitmap(file)}
   catch(e){bmp=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=URL.createObjectURL(file)})}
-  const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight,s=Math.min(1,1280/Math.max(w,h));
+  const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight,s=Math.min(1,960/Math.max(w,h));
   const c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);
   c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
   return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("toBlob")),"image/jpeg",.82));
@@ -382,13 +382,13 @@ function httpErr(status,body){
   return e;
 }
 function unreadable(){const e=new Error("L'AI non ha dato una risposta leggibile.");e.retry=true;return e}
-async function askModel(prov,model,key,b64,prompt){
-  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
+async function askModel(prov,model,key,b64,prompt,ctl){
+  const to=setTimeout(()=>ctl.abort(),25000);
   try{
     let res;
     if(prov==="gemini"){
       res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-goog-api-key":key},
-        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}],generationConfig:{responseMimeType:"application/json"}})});
+        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:1500,...(model==="gemini-2.5-flash"?{thinkingConfig:{thinkingBudget:0}}:{})}})});
     }else{
       res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
         body:JSON.stringify({model,max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:prompt}]}]})});
@@ -404,20 +404,38 @@ async function askModel(prov,model,key,b64,prompt){
     throw err;
   }finally{clearTimeout(to)}
 }
-async function callAI(b64,hint,stage){
-  const prov=getProv(),key=getKey(),models=prov==="gemini"?GEMINI_MODELS:CLAUDE_MODELS;
-  const prompt=`Sei un nutrizionista. Guarda la foto di un pasto (probabilmente cucina italiana/mediterranea). Elenca ogni alimento distinto visibile, stima il peso in grammi della porzione (usa piatto, posate e proporzioni come riferimento) e i carboidrati disponibili per 100 g dell'alimento così com'è nel piatto (cotto se cotto).${hint?" Indizio dell'utente: "+hint+".":""}
-Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
-  let last;
-  for(let i=0;i<models.length;i++){
-    for(let t=0;t<(i===0?2:1);t++){
-      stage(i===0?(t===0?"Riconosco gli alimenti…":"Servizio occupato, riprovo…"):"Servizio occupato, provo un altro modello…");
-      try{return await askModel(prov,models[i],key,b64,prompt)}
-      catch(err){last=err;if(!err.retry)throw err;if(i===0&&t===0)await sleep(1500)}
-    }
+function dbMatch(name){
+  const n=String(name).toLowerCase();
+  for(const f of DB){
+    const k=f.n.toLowerCase().split(/[ \/(]/)[0];
+    if(k.length>=4&&new RegExp("(^|[^a-zà-ú])"+k+"[aeio]?([^a-zà-ú]|$)").test(n))return f;
   }
-  if(last.status!==429)last.message="Il servizio AI è sovraccarico: ho provato "+models.length+" modelli. Riprova tra qualche minuto o aggiungi a mano.";
-  throw last;
+  return null;
+}
+function callAI(b64,hint,stage){
+  const prov=getProv(),key=getKey(),models=prov==="gemini"?GEMINI_MODELS:CLAUDE_MODELS;
+  const prompt=`Sei un dietologo esperto di cucina italiana. Analizza la foto del pasto. Per ogni alimento distinto stima il PESO IN GRAMMI della porzione così com'è nel piatto (cotta, condita). Riferimenti: un piatto piano standard misura circa 26 cm e una forchetta circa 19 cm; un piatto di pasta o riso cotto è di 150 g se piccolo, 180-250 g se normale, 250-350 g se abbondante o se riempie il piatto: non sottostimare. Una fetta di pane pesa 30-40 g. Poi indica i grammi di carboidrati disponibili per 100 g di quell'alimento secondo le tabelle nutrizionali (es. pasta cotta 31, riso cotto 28, pane 55, patate lesse 17, pizza 33).${hint?" Indizio dell'utente: "+hint+".":""}
+Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
+  return new Promise((resolve,reject)=>{
+    let next=0,active=0,done=false,last=null,timer=null;const ctls=[];
+    const finish=(fn,v)=>{done=true;clearTimeout(timer);ctls.forEach(c=>c.abort());fn(v)};
+    const launch=()=>{
+      if(done||next>=models.length)return;
+      const i=next++,ctl=new AbortController();ctls.push(ctl);active++;
+      stage(i===0?"Riconosco gli alimenti…":"Servizio lento o occupato, provo un altro modello…");
+      askModel(prov,models[i],key,b64,prompt,ctl)
+        .then(v=>{if(!done)finish(resolve,{out:v,model:models[i]})})
+        .catch(err=>{
+          active--;last=err;if(done)return;
+          if(!err.retry)return finish(reject,err);
+          if(next<models.length){launch()}
+          else if(active===0){if(last.status!==429)last.message="Il servizio AI è sovraccarico: ho provato "+models.length+" modelli. Riprova tra qualche minuto o aggiungi a mano.";finish(reject,last)}
+        });
+      clearTimeout(timer);
+      if(next<models.length)timer=setTimeout(launch,6000);
+    };
+    launch();
+  });
 }
 $("photo").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
@@ -434,23 +452,26 @@ async function analyze(){
   if(!getKey()){setMsg("Manca la chiave AI: impostala per analizzare le foto.","err");checkKey();return}
   busy=true;setMsg("");
   $("analyze").setAttribute("aria-busy","true");$("analyzeTxt").textContent="Analisi in corso…";$("spin").classList.remove("hide");$("scan").classList.add("on");
-  const stage=t=>{$("scanTxt").textContent=t};
+  let base="Preparo la foto…";const t0=Date.now();
+  const paint=()=>{$("scanTxt").textContent=base+" "+Math.round((Date.now()-t0)/1000)+" s"};
+  const stage=t=>{base=t;paint()};
+  const tick=setInterval(paint,500);
   try{
     stage("Preparo la foto…");
     const b64=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(",")[1]);fr.onerror=j;fr.readAsDataURL(photoBlob)});
-    const out=await callAI(b64,$("hint").value.trim(),stage);
+    const {out,model}=await callAI(b64,$("hint").value.trim(),stage);
     const items=((out&&out.items)||[]).filter(i=>i&&i.nome&&+i.grammi>0);
     if(!items.length){setMsg("Non riconosco cibo in questa foto. Prova con un'altra o aggiungi a mano.")}
     else{
       cur=cur.filter(i=>!i.ai);
-      items.forEach(i=>cur.push({n:String(i.nome),g:+i.grammi,c100:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza}));
+      items.forEach(i=>{const f=dbMatch(i.nome);cur.push({n:String(i.nome),g:+i.grammi,c100:f?f.c:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza})});
       renderCur();
-      setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Controlla i grammi qui sotto.`,"ok");
+      setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Controlla i grammi qui sotto.`+(/lite/.test(model)?" Stima fatta con un modello leggero: verifica bene i pesi.":""),"ok");
       $("secPiatto").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
     }
     $("analyzeTxt").textContent="Analizza di nuovo";
   }catch(err){setMsg(err.message||"Analisi non riuscita.","err");$("analyzeTxt").textContent="Riprova"}
-  finally{busy=false;$("analyze").removeAttribute("aria-busy");$("spin").classList.add("hide");$("scan").classList.remove("on")}
+  finally{clearInterval(tick);busy=false;$("analyze").removeAttribute("aria-busy");$("spin").classList.add("hide");$("scan").classList.remove("on")}
 }
 $("analyze").onclick=analyze;
 
