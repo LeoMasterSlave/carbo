@@ -10,90 +10,213 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Carbo">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#2f7d4f">
+<meta name="theme-color" content="#F4EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14120E" media="(prefers-color-scheme: dark)">
 <style>
-:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6f6e68;--acc:#2f7d4f;--acc2:#e7f2ea;--warn:#b4541a;--line:#e4e2da}
-@media(prefers-color-scheme:dark){:root{--bg:#141412;--card:#1f1f1c;--ink:#f0efe9;--mut:#9a988f;--acc:#6fcf97;--acc2:#1f2f25;--warn:#f0a36b;--line:#33332e}}
+/* Direzione: "Etichetta" — carta calda, inchiostro, filetti sottili, grandi numeri a serif.
+   L'unico accento (cachi) indica sempre una quantità di carboidrati. */
+:root{
+  --bg:#F4EFE6;--surface:#FBF8F2;--wash:#EAE3D6;--ink:#1B1A17;--mut:#6B665C;--line:#D9D0BF;--acc:#BF3F0B;--danger:#B42318;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --serif:ui-serif,"New York","Iowan Old Style",Georgia,serif;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+  --r-lg:22px;--r-md:14px;--r-sm:10px;
+  --ease:cubic-bezier(.23,1,.32,1);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#14120E;--surface:#1C1915;--wash:#24201A;--ink:#F2EDE3;--mut:#A59E90;--line:#38332A;--acc:#F2915F;--danger:#FF8F80}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
-main{max-width:560px;margin:0 auto;padding:16px}
-h1{font-size:24px;margin:8px 0 2px}h2{font-size:15px;margin:0 0 8px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
-.big{font-size:44px;font-weight:700;color:var(--acc);line-height:1}
-.mut{color:var(--mut);font-size:14px}
-button,.btn{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--acc);color:#fff;font-weight:600;width:100%;display:block;text-align:center;cursor:pointer}
-button.sec,.btn.sec{background:var(--acc2);color:var(--acc)}
-button.ghost{background:none;color:var(--mut);padding:6px 10px;width:auto;font-weight:500}
-button:disabled{opacity:.5}
-input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
-.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row>.fix{flex:none}
-.item{display:grid;grid-template-columns:1fr 78px 54px 28px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
-.item:first-child{border-top:0}
-.item input{padding:8px;text-align:right}
-.item .n{font-weight:600}.item .c{font-weight:700;text-align:right;color:var(--acc)}
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:5}
-nav button{background:none;color:var(--mut);flex:1;padding:8px 4px;font-size:12px;border-radius:10px}
-nav button.on{color:var(--acc);background:var(--acc2)}
-nav b{display:block;font-size:20px}
-.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--acc2);color:var(--acc);margin-left:6px}
-.pill.w{background:#fbe8da;color:var(--warn)}
-.sug{padding:10px 4px;border-top:1px solid var(--line);display:flex;justify-content:space-between}
-.hide{display:none}
-img.prev{width:100%;max-height:240px;object-fit:cover;border-radius:12px;margin-bottom:10px}
-.note{font-size:13px;color:var(--mut);margin:14px 4px}
-.err{color:var(--warn);font-size:14px;margin:8px 0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);
+  padding:max(var(--s5),env(safe-area-inset-top)) 0 calc(168px + env(safe-area-inset-bottom));font-variant-numeric:tabular-nums}
+main{max-width:560px;margin:0 auto;padding:0 var(--s5)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hide{display:none!important}
+.mut{color:var(--mut)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0}
+h1{font:600 30px/1.1 var(--serif);letter-spacing:-.01em;margin:var(--s2) 0 var(--s5)}
+.num{font-family:var(--serif);font-feature-settings:"tnum";letter-spacing:-.01em}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:var(--r-sm)}
+.view{animation:in .28s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+
+/* Oggi */
+.hero{padding:var(--s5) 0 var(--s4)}
+.big{display:flex;align-items:baseline;gap:var(--s2);color:var(--acc);margin:var(--s2) 0 var(--s1)}
+.big .num{font-size:clamp(76px,24vw,108px);line-height:.9;font-weight:500;letter-spacing:-.03em}
+.big .u{font:500 24px var(--serif)}
+.lbl{margin:0;color:var(--mut)}
+.bar{display:flex;gap:2px;height:8px;margin:var(--s5) 0 var(--s3);border-radius:4px;overflow:hidden;background:var(--wash)}
+.bar i{background:var(--acc);border-radius:2px;min-width:3px}
+.bar i:nth-child(2){opacity:.72}.bar i:nth-child(3){opacity:.52}.bar i:nth-child(4){opacity:.36}.bar i:nth-child(n+5){opacity:.26}
+.bar b{flex:1 1 0;background:transparent}
+.goal{display:flex;align-items:center;gap:var(--s3);justify-content:space-between;color:var(--mut);font-size:15px}
+.goal label{display:flex;align-items:center;gap:var(--s2)}
+.goal input{width:72px;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:var(--s2) 0;color:var(--ink);font:500 17px var(--sans)}
+.rule{border:0;border-top:1px solid var(--line);margin:var(--s5) 0 0}
+.meal{display:grid;grid-template-columns:1fr auto;column-gap:var(--s4);padding:var(--s4) 0;border-bottom:1px solid var(--line)}
+.meal .mt{font-weight:600}.meal .mtime{color:var(--mut);margin-left:var(--s2);font-size:14px}
+.meal .mi{grid-column:1;margin:var(--s1) 0 0;color:var(--mut);font-size:15px}
+.meal .mv{grid-row:1/3;grid-column:2;align-self:start;text-align:right;white-space:nowrap}
+.meal .mv .num{font-size:30px;font-weight:500}.meal .mv .u{color:var(--mut);margin-left:2px}
+.meal .act{grid-column:1/3;justify-self:start;margin:0 0 -8px -4px}
+.empty{padding:var(--s6) 0;color:var(--mut)}
+.set{margin-top:var(--s6);color:var(--mut)}
+.set summary,.more summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:15px;list-style:none}
+.set summary::-webkit-details-marker,.more summary::-webkit-details-marker{display:none}
+.set summary::after,.more summary::after{content:"";width:7px;height:7px;margin-left:10px;border-right:1.75px solid currentColor;border-bottom:1.75px solid currentColor;transform:rotate(-45deg);transition:transform .2s var(--ease)}
+.set[open] summary::after,.more[open] summary::after{transform:rotate(45deg)}
+.more summary{color:var(--mut);font-weight:500}
+#v-aggiungi{padding-bottom:104px}
+.set .body{padding:var(--s2) 0 var(--s4);display:grid;gap:var(--s3)}
+
+/* controlli */
+button,.btn{font:600 16px var(--sans);border:0;cursor:pointer;color:inherit;background:none;padding:0}
+button:disabled{opacity:.4;cursor:default}
+.pri{display:flex;align-items:center;justify-content:center;gap:var(--s3);min-height:56px;width:100%;border-radius:var(--r-md);background:var(--ink);color:var(--bg);padding:0 var(--s5);transition:transform .16s var(--ease)}
+.pri:active{transform:scale(.97)}
+.pri svg{flex:none}
+label.pri:focus-within{outline:2px solid var(--acc);outline-offset:2px}
+.txt{min-height:44px;display:inline-flex;align-items:center;color:var(--mut);font-weight:500;font-size:15px;padding:0 var(--s1);transition:transform .16s var(--ease)}
+.txt:active{transform:scale(.97)}
+.txt.ink{color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+input,select{font:16px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:0 var(--s4);min-height:48px;width:100%}
+input::placeholder{color:var(--mut)}
+input[type=number]{-moz-appearance:textfield}
+.sec{margin:var(--s6) 0 0}
+.sec h2{font:600 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 var(--s3)}
+.msg{margin:var(--s3) 0 0;font-size:15px;color:var(--mut);min-height:22px}
+.err{color:var(--danger)}
+img.prev{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:var(--r-md);margin-bottom:var(--s3)}
+
+/* segmented */
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;background:var(--wash);border-radius:var(--r-md);border:0;margin:0 0 var(--s5)}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg span{display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--mut);transition:background .2s var(--ease),color .2s var(--ease)}
+.seg input:checked+span{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(30,25,15,.14)}
+.seg input:focus-visible+span{outline:2px solid var(--acc);outline-offset:1px}
+
+/* ricerca */
+.sug{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);width:100%;min-height:52px;text-align:left;font-weight:500;border-bottom:1px solid var(--line)}
+.sug small{color:var(--mut);font:400 14px var(--sans);white-space:nowrap}
+.cust{display:grid;grid-template-columns:1fr 112px;gap:var(--s2);margin-top:var(--s3)}
+.cust button{grid-column:1/3}
+.cust .sbtn{min-height:48px;border:1px solid var(--line);border-radius:var(--r-md);transition:transform .16s var(--ease)}
+.cust .sbtn:active{transform:scale(.97)}
+
+/* piatto */
+.item{display:grid;grid-template-columns:1fr auto 44px;grid-template-areas:"nm c x" "stp stp stp";align-items:start;column-gap:var(--s3);padding:var(--s4) 0 var(--s3);border-bottom:1px solid var(--line)}
+.item .nm{grid-area:nm;min-width:0}.item .n{font-weight:600}.item .sub{display:block;color:var(--mut);font-size:14px}
+.item .c{grid-area:c;font-family:var(--serif);font-size:26px;line-height:1.1;padding-top:2px;text-align:right}
+.item .x{grid-area:x;width:44px;height:44px;margin:-8px 0 0;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.stp{grid-area:stp;display:flex;align-items:center;gap:var(--s2);margin-top:var(--s2)}
+.stp button{width:44px;height:44px;border:1px solid var(--line);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;transition:transform .16s var(--ease)}
+.stp button:active{transform:scale(.94)}
+.stp input{width:88px;min-height:44px;text-align:center;padding:0;font:500 17px var(--sans)}
+.stp .gu{color:var(--mut);margin-left:var(--s1)}
+.tag{display:inline-block;margin-left:var(--s2);font:500 12px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--acc);border:1px solid currentColor;border-radius:6px;padding:3px 6px;vertical-align:2px}
+.tag.low{color:var(--danger)}
+.note{font-size:13px;color:var(--mut);margin:var(--s6) 0 0;line-height:1.5}
+
+/* storico */
+.day{margin-bottom:var(--s6)}
+.day .dh{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:var(--s2)}
+.day .dh b{font-weight:600}.day .dh .num{font-size:26px}
+
+/* dock: vetro solo sugli strati che galleggiano */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:0 var(--s4) max(var(--s3),env(safe-area-inset-bottom));display:grid;gap:var(--s2);max-width:560px;margin:0 auto;pointer-events:none}
+.dock>*{pointer-events:auto}
+.glass{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(30,25,15,.12)}
+@supports (backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px)){
+  .glass{background:color-mix(in srgb,var(--surface) 70%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5)}}
+@media(prefers-reduced-transparency:reduce){.glass{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
+.savebar{display:flex;align-items:center;gap:var(--s4);padding:var(--s3) var(--s3) var(--s3) var(--s5);
+  opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s .2s}
+.savebar.show{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.savebar .t{flex:1;line-height:1.15}.savebar .t small{display:block;color:var(--mut);font-size:13px}
+.savebar .num{font-size:30px;color:var(--acc)}
+.savebar .pri{width:auto;min-height:48px;flex:none}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:54px;border-radius:calc(var(--r-lg) - 6px);font:500 12px var(--sans);color:var(--mut);transition:background .2s var(--ease),color .2s var(--ease),transform .16s var(--ease)}
+nav button:active{transform:scale(.97)}
+nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
+@media(hover:hover) and (pointer:fine){.txt:hover,nav button:hover{color:var(--ink)}.sug:hover{background:var(--wash)}}
+@media(prefers-reduced-motion:reduce){.view{animation:none}.savebar,.savebar.show{transform:none}*{transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 <main>
-<section id="v-oggi">
-  <h1>Oggi</h1><div class="mut" id="date"></div>
-  <div class="card"><div class="big"><span id="tot">0</span> g</div><div class="mut">carboidrati totali oggi</div>
-    <div class="row" style="margin-top:10px"><span class="mut fix">Obiettivo (g)</span><input id="goal" type="number" inputmode="numeric" placeholder="facoltativo"></div>
-    <div id="goalbar" class="mut" style="margin-top:6px"></div></div>
+<section id="v-oggi" class="view">
+  <h1 class="sr">Oggi</h1>
+  <div class="hero">
+    <p class="eyebrow" id="date"></p>
+    <div class="big"><span class="num" id="tot">0</span><span class="u">g</span></div>
+    <p class="lbl">di carboidrati oggi</p>
+    <div class="bar" id="bar" role="img" aria-label="Nessun pasto"></div>
+    <div class="goal"><span id="goalbar"></span>
+      <label>Obiettivo <input id="goal" type="number" inputmode="numeric" placeholder="—" aria-label="Obiettivo giornaliero in grammi"> g</label></div>
+  </div>
+  <hr class="rule">
   <div id="meals"></div>
-  <div class="card"><h2>Impostazioni AI</h2>
-    <select id="prov" style="margin-bottom:8px"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select>
-    <input id="key" type="password" placeholder="Incolla qui la chiave API" autocomplete="off" autocapitalize="off">
-    <div class="mut" id="keymsg" style="margin-top:6px">La chiave resta solo su questo iPhone.</div></div>
-</section>
-
-<section id="v-aggiungi" class="hide">
-  <h1>Nuovo pasto</h1>
-  <div class="card">
-    <div class="row"><select id="mtype"><option>Colazione</option><option>Pranzo</option><option>Cena</option><option>Spuntino</option></select></div>
-    <div id="aiBox" style="margin-top:10px">
-      <img id="prev" class="prev hide" alt="">
-      <label class="btn" for="photo">📷 Foto del piatto (AI)</label>
-      <input id="photo" type="file" accept="image/*" class="hide">
-      <input id="hint" placeholder="Indizio facoltativo (es. “pasta al pomodoro, porzione abbondante”)" style="margin-top:8px">
-      <div id="aiMsg" class="mut" style="margin-top:6px"></div>
+  <details class="set"><summary>Impostazioni AI</summary>
+    <div class="body">
+      <select id="prov" aria-label="Servizio AI"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select>
+      <input id="key" type="password" placeholder="Chiave API" aria-label="Chiave API" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="mut" id="keymsg" role="status" style="font-size:14px">La chiave resta solo su questo telefono.</div>
     </div>
-  </div>
-  <div class="card"><h2>Aggiungi a mano</h2>
-    <input id="q" placeholder="Cerca alimento (pasta, pane, mela…)" autocomplete="off">
-    <div id="sug"></div>
-    <div class="row" style="margin-top:8px"><input id="cn" placeholder="Altro alimento"><input id="cc" type="number" inputmode="decimal" placeholder="CHO/100g" class="fix" style="width:100px"></div>
-    <button class="sec" id="addc" style="margin-top:8px">Aggiungi alimento personalizzato</button>
-  </div>
-  <div class="card"><h2>Piatto</h2><div id="items"><div class="mut">Ancora nulla.</div></div>
-    <div class="row" style="margin-top:10px;font-weight:700"><span>Totale</span><span style="text-align:right;color:var(--acc)" id="cur">0 g</span></div>
-    <button id="save" style="margin-top:10px" disabled>Salva pasto</button>
-    <button class="ghost" id="clear" style="margin:6px auto 0">Svuota</button>
-  </div>
-  <div class="note">Le stime dell’AI sono indicative: pesi e carboidrati possono essere sbagliati, soprattutto con condimenti, salse e porzioni difficili da valutare. Correggi i grammi se li conosci. Non è un dispositivo medico: per dosare l’insulina o per decisioni cliniche affidati ai valori verificati e al tuo medico.</div>
+  </details>
 </section>
 
-<section id="v-storico" class="hide">
+<section id="v-aggiungi" class="view hide">
+  <h1>Nuovo pasto</h1>
+  <fieldset class="seg" id="mtype"><legend class="sr">Tipo di pasto</legend>
+    <label><input type="radio" name="mt" value="Colazione"><span>Colazione</span></label>
+    <label><input type="radio" name="mt" value="Pranzo"><span>Pranzo</span></label>
+    <label><input type="radio" name="mt" value="Spuntino"><span>Spuntino</span></label>
+    <label><input type="radio" name="mt" value="Cena"><span>Cena</span></label>
+  </fieldset>
+
+  <img id="prev" class="prev hide" alt="Anteprima del piatto">
+  <label class="pri" for="photo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+    Fotografa il piatto</label>
+  <input id="photo" type="file" accept="image/*" class="sr">
+  <input id="hint" placeholder="Indizio facoltativo" aria-label="Indizio sul piatto" style="margin-top:12px">
+  <p class="msg" id="aiMsg" role="status"></p>
+
+  <div class="sec"><h2>Aggiungi a mano</h2>
+    <input id="q" type="search" placeholder="Cerca un alimento" aria-label="Cerca un alimento" autocomplete="off">
+    <div id="sug"></div>
+    <details class="more"><summary>Alimento non in elenco</summary>
+      <div class="cust"><input id="cn" placeholder="Nome" aria-label="Nome alimento"><input id="cc" type="number" inputmode="decimal" placeholder="CHO / 100 g" aria-label="Carboidrati per 100 grammi">
+        <button class="sbtn" id="addc" type="button">Aggiungi</button></div>
+    </details>
+  </div>
+
+  <div class="sec"><h2>Piatto</h2>
+    <div id="items"></div>
+    <button class="txt" id="clear" type="button">Svuota piatto</button>
+  </div>
+  <p class="note">Le stime dell’AI sono indicative: pesi e carboidrati possono essere sbagliati, soprattutto con condimenti, salse e porzioni difficili da valutare. Correggi i grammi se li conosci. Non è un dispositivo medico: per dosare l’insulina o per decisioni cliniche affidati ai valori verificati e al tuo medico.</p>
+</section>
+
+<section id="v-storico" class="view hide">
   <h1>Storico</h1><div id="hist"></div>
 </section>
 </main>
 
-<nav>
-  <button data-v="oggi" class="on"><b>🍽️</b>Oggi</button>
-  <button data-v="aggiungi"><b>➕</b>Aggiungi</button>
-  <button data-v="storico"><b>📅</b>Storico</button>
-</nav>
+<div class="dock">
+  <div class="savebar glass" id="savebar">
+    <div class="t"><small>Totale piatto</small><span class="num"><span id="cur">0</span> g</span></div>
+    <button class="pri" id="save" type="button" disabled>Salva pasto</button>
+  </div>
+  <nav class="glass" aria-label="Sezioni">
+    <button data-v="oggi" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>Oggi</button>
+    <button data-v="aggiungi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>Aggiungi</button>
+    <button data-v="storico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Storico</button>
+  </nav>
+</div>
 
 <script>
 // CHO g per 100 g (valori medi indicativi), g = porzione tipica
@@ -104,80 +227,95 @@ const DB=[
 const $=id=>document.getElementById(id);
 const getProv=()=>{try{return localStorage.getItem("carbo_prov")||"gemini"}catch(e){return "gemini"}};
 const getKey=()=>{try{return localStorage.getItem("carbo_key_"+getProv())||""}catch(e){return ""}};
-let cur=[];            // piatto in costruzione: {n,g,c100,ai?,conf?}
-let state={meals:[],goal:null}; // meals: {id,ts,type,items,total}
-
+let cur=[];
+let state={meals:[],goal:null};
+let view="oggi";
 
 const tdKey=ts=>{const d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const r1=x=>Math.round(x*10)/10;
 const itemC=i=>i.g*i.c100/100;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const total=()=>r1(cur.reduce((s,i)=>s+itemC(i),0));
+const ico=d=>`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const I_X=ico('<path d="M18 6 6 18M6 6l12 12"/>'),I_PLUS=ico('<path d="M5 12h14M12 5v14"/>'),I_MIN=ico('<path d="M5 12h14"/>');
 
-// ---- persistenza: localStorage + (se disponibile) db privato dell'utente
 function lsGet(){try{return JSON.parse(localStorage.getItem("carbo")||"null")}catch(e){return null}}
-function lsSet(){try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){}}
-let saveT;
-function persist(){lsSet()}
-function initStore(){const l=lsGet();if(l&&l.meals)state=l;render()}
+function persist(){try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){}}
+function mealType(){const c=document.querySelector('input[name=mt]:checked');return c?c.value:"Pranzo"}
+function defaultType(){const h=new Date().getHours();return h<10?"Colazione":h<15?"Pranzo":h<18?"Spuntino":"Cena"}
 
-// ---- render
+function mealRow(m){
+  const h=new Date(m.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+  return `<article class="meal"><div><span class="mt">${esc(m.type)}</span><span class="mtime">${h}</span></div>
+  <p class="mi">${m.items.map(i=>esc(i.n)+" "+Math.round(i.g)+" g").join(" · ")}</p>
+  <div class="mv"><span class="num">${Math.round(m.total)}</span><span class="u">g</span></div>
+  <button class="txt act" data-del="${m.id}" type="button">Elimina</button></article>`;
+}
 function render(){
   const today=tdKey(Date.now());
   $("date").textContent=new Date().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
   const tm=state.meals.filter(m=>tdKey(m.ts)===today);
   const tot=tm.reduce((s,m)=>s+m.total,0);
   $("tot").textContent=Math.round(tot);
-  $("goal").value=state.goal||"";
-  $("goalbar").textContent=state.goal?`${Math.round(tot)} / ${state.goal} g · ${tot>state.goal?"sopra di "+Math.round(tot-state.goal):"restano "+Math.round(state.goal-tot)} g`:"";
-  $("meals").innerHTML=tm.length?tm.map(mealCard).join(""):'<div class="card mut">Nessun pasto registrato oggi.</div>';
+  if(document.activeElement!==$("goal"))$("goal").value=state.goal||"";
+  const max=Math.max(state.goal||0,tot,1);
+  $("bar").innerHTML=tm.map(m=>`<i style="flex:${m.total} 1 0"></i>`).join("")+(max>tot?`<b style="flex:${max-tot} 1 0"></b>`:"");
+  const left=state.goal?Math.round(state.goal-tot):null;
+  $("goalbar").textContent=left===null?"":left>=0?`Restano ${left} g`:`Oltre di ${-left} g`;
+  $("bar").setAttribute("aria-label",tm.length?`${Math.round(tot)} grammi in ${tm.length} ${tm.length===1?"pasto":"pasti"}${state.goal?`, obiettivo ${state.goal} grammi`:""}`:"Nessun pasto");
+  $("meals").innerHTML=tm.length?tm.map(mealRow).join(""):'<div class="empty">Ancora niente oggi.<br><button class="txt ink" data-go="aggiungi" type="button">Aggiungi un pasto</button></div>';
   const days={};state.meals.forEach(m=>{(days[tdKey(m.ts)]??=[]).push(m)});
   $("hist").innerHTML=Object.keys(days).sort().reverse().map(k=>{
     const t=days[k].reduce((s,m)=>s+m.total,0);
-    return `<div class="card"><div class="row"><b>${new Date(k+"T12:00").toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"})}</b><b style="text-align:right;color:var(--acc)">${Math.round(t)} g</b></div>${days[k].map(mealCard).join("")}</div>`
-  }).join("")||'<div class="card mut">Ancora nessun dato.</div>';
-}
-function mealCard(m){
-  const h=new Date(m.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
-  return `<div class="card" style="margin:8px 0"><div class="row"><b>${esc(m.type)} <span class="mut">${h}</span></b><b style="text-align:right;color:var(--acc)">${Math.round(m.total)} g</b></div>
-  <div class="mut">${m.items.map(i=>esc(i.n)+" "+Math.round(i.g)+"g").join(" · ")}</div>
-  <button class="ghost" data-del="${m.id}">Elimina</button></div>`;
+    return `<section class="day"><div class="dh"><b>${new Date(k+"T12:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})}</b><span class="num">${Math.round(t)} g</span></div>${days[k].slice().reverse().map(mealRow).join("")}</section>`
+  }).join("")||'<div class="empty">Ancora nessun dato.</div>';
 }
 function renderCur(){
-  $("items").innerHTML=cur.length?cur.map((i,k)=>`<div class="item"><div><div class="n">${esc(i.n)}${i.ai?`<span class="pill ${i.conf==="bassa"?"w":""}">AI${i.conf?" · "+esc(i.conf):""}</span>`:""}</div><div class="mut">${r1(i.c100)} g/100g</div></div>
-   <input type="number" inputmode="decimal" value="${Math.round(i.g)}" data-g="${k}"><div class="c">${r1(itemC(i))}</div><button class="ghost" data-rm="${k}">✕</button></div>`).join(""):'<div class="mut">Ancora nulla.</div>';
-  $("cur").textContent=r1(cur.reduce((s,i)=>s+itemC(i),0))+" g";
+  $("items").innerHTML=cur.length?cur.map((i,k)=>`<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${i.conf==="bassa"?"da verificare":"stima"}</span>`:""}<span class="sub">${r1(i.c100)} g ogni 100 g</span></div>
+   <div class="c">${r1(itemC(i))}</div>
+   <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
+   <div class="stp"><button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 grammi di ${esc(i.n)}">${I_MIN}</button>
+   <input type="number" inputmode="decimal" value="${Math.round(i.g)}" data-g="${k}" aria-label="Grammi di ${esc(i.n)}"><span class="gu">g</span>
+   <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 grammi di ${esc(i.n)}">${I_PLUS}</button></div></div>`).join(""):'<div class="mut" style="padding:8px 0 4px">Ancora vuoto: fotografa il piatto o cerca un alimento.</div>';
+  $("cur").textContent=total();
   $("save").disabled=!cur.length;
+  $("clear").classList.toggle("hide",!cur.length);
+  syncDock();
+}
+function syncDock(){$("savebar").classList.toggle("show",view==="aggiungi"&&cur.length>0)}
+function go(v){
+  view=v;
+  ["oggi","aggiungi","storico"].forEach(n=>{const s=$("v-"+n);s.classList.toggle("hide",n!==v);if(n===v){s.style.animation="none";void s.offsetWidth;s.style.animation=""}});
+  document.querySelectorAll("nav button").forEach(b=>{if(b.dataset.v===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  syncDock();window.scrollTo(0,0);
 }
 
-// ---- eventi
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
-  ["oggi","aggiungi","storico"].forEach(v=>$("v-"+v).classList.toggle("hide",v!==b.dataset.v));
-  window.scrollTo(0,0);
-});
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
 $("goal").onchange=e=>{state.goal=+e.target.value||null;persist();render()};
 document.body.addEventListener("click",e=>{
   const d=e.target.closest("[data-del]");if(d){state.meals=state.meals.filter(m=>m.id!==d.dataset.del);persist();render()}
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
+  const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step;cur[k].g=Math.max(0,Math.round(cur[k].g)+(+s.dataset.d));renderCur()}
+  const g=e.target.closest("[data-go]");if(g)go(g.dataset.go);
 });
 $("items").addEventListener("input",e=>{
   const k=e.target.dataset.g;if(k==null)return;cur[k].g=Math.max(0,+e.target.value||0);
   e.target.closest(".item").querySelector(".c").textContent=r1(itemC(cur[k]));
-  $("cur").textContent=r1(cur.reduce((s,i)=>s+itemC(i),0))+" g";
+  $("cur").textContent=total();
 });
 $("q").oninput=e=>{
   const q=e.target.value.trim().toLowerCase();
-  $("sug").innerHTML=q?DB.filter(f=>f.n.toLowerCase().includes(q)).slice(0,6).map((f,k)=>`<div class="sug" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><span class="mut">${f.c} g/100g · ${f.g} g</span></div>`).join(""):"";
+  $("sug").innerHTML=q?DB.filter(f=>f.n.toLowerCase().includes(q)).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 g</small></button>`).join(""):"";
 };
 $("sug").onclick=e=>{const s=e.target.closest("[data-f]");if(!s)return;const f=DB[+s.dataset.f];cur.push({n:f.n,g:f.g,c100:f.c});$("q").value="";$("sug").innerHTML="";renderCur()};
-$("addc").onclick=()=>{const n=$("cn").value.trim(),c=+$("cc").value;if(!n||!(c>=0))return;cur.push({n,g:100,c100:c});$("cn").value="";$("cc").value="";renderCur()};
-$("clear").onclick=()=>{cur=[];$("prev").classList.add("hide");$("aiMsg").textContent="";renderCur()};
+$("addc").onclick=()=>{const n=$("cn").value.trim(),c=+$("cc").value;if(!n||!(c>=0)||$("cc").value==="")return;cur.push({n,g:100,c100:c});$("cn").value="";$("cc").value="";renderCur()};
+function resetPlate(){cur=[];$("prev").classList.add("hide");$("aiMsg").textContent="";$("hint").value="";renderCur()}
+$("clear").onclick=resetPlate;
 $("save").onclick=()=>{
   if(!cur.length)return;
-  state.meals.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),type:$("mtype").value,
-    items:cur.map(i=>({n:i.n,g:i.g,c100:i.c100})),total:r1(cur.reduce((s,i)=>s+itemC(i),0))});
-  persist();cur=[];$("prev").classList.add("hide");$("aiMsg").textContent="";renderCur();render();
-  document.querySelector('nav [data-v="oggi"]').click();
+  state.meals.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),type:mealType(),
+    items:cur.map(i=>({n:i.n,g:i.g,c100:i.c100})),total:total()});
+  persist();resetPlate();render();go("oggi");
 };
 
 // ---- AI: foto -> stima
@@ -190,12 +328,12 @@ async function shrink(file){
 }
 $("photo").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  const msg=$("aiMsg");msg.className="mut";msg.textContent="Analizzo la foto…";
+  const msg=$("aiMsg");msg.className="msg";msg.textContent="Analizzo la foto…";
   try{
     const blob=await shrink(f);
     $("prev").src=URL.createObjectURL(blob);$("prev").classList.remove("hide");
     const key=getKey();
-    if(!key){msg.className="err";msg.textContent="Inserisci prima la chiave API in Oggi → Impostazioni AI.";return}
+    if(!key){msg.className="msg err";msg.textContent="Inserisci prima la chiave API in Oggi → Impostazioni AI.";return}
     const hint=$("hint").value.trim();
     const prompt=`Sei un nutrizionista. Guarda la foto di un pasto (probabilmente cucina italiana/mediterranea). Elenca ogni alimento distinto visibile, stima il peso in grammi della porzione (usa piatto, posate e proporzioni come riferimento) e i carboidrati disponibili per 100 g dell'alimento così com'è nel piatto (cotto se cotto).${hint?" Indizio dell'utente: "+hint+".":""}
 Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
@@ -221,16 +359,18 @@ Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":n
     items.forEach(i=>{if(i.nome&&i.grammi>0)cur.push({n:String(i.nome),g:+i.grammi,c100:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza})});
     msg.textContent="Stima fatta: controlla e correggi i grammi se li conosci.";renderCur();
   }catch(err){
-    msg.className="err";
+    msg.className="msg err";
     msg.textContent="Analisi non riuscita: "+(err&&err.message||"errore")+". Puoi aggiungere a mano.";
   }finally{e.target.value=""}
 };
 
 $("prov").value=getProv();$("key").value=getKey();
 $("prov").onchange=e=>{try{localStorage.setItem("carbo_prov",e.target.value)}catch(x){}$("key").value=getKey()};
-$("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.value.trim())}catch(x){}$("keymsg").textContent="Chiave salvata su questo iPhone."};
+$("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.value.trim())}catch(x){}$("keymsg").textContent="Chiave salvata su questo telefono."};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-renderCur();initStore();
+const _l=lsGet();if(_l&&_l.meals)state=_l;
+const _t=document.querySelector('input[name=mt][value="'+defaultType()+'"]');if(_t)_t.checked=true;
+render();renderCur();
 </script>
 </body>
 </html>
