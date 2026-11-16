@@ -124,6 +124,28 @@ img.prev{display:block;width:100%;max-height:220px;object-fit:cover;border-radiu
 .day .dh{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:var(--s2)}
 .day .dh b{font-weight:600}.day .dh .num{font-size:26px}
 
+/* foto + analisi */
+.shot{position:relative;margin-bottom:var(--s3);border-radius:var(--r-md);overflow:hidden}
+.shot img.prev{display:block;width:100%;max-height:300px;object-fit:cover;margin:0;border-radius:0}
+.scan{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:var(--s4);background:rgba(20,18,14,.5);opacity:0;visibility:hidden;transition:opacity .2s var(--ease),visibility 0s .2s}
+.scan.on{opacity:1;visibility:visible;transition-delay:0s}
+.scan i{position:absolute;inset:0;border-bottom:2px solid var(--acc);animation:sweep 1.8s var(--ease) infinite alternate}
+@keyframes sweep{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.scan span{position:relative;padding:10px 16px;border-radius:99px;background:var(--surface);color:var(--ink);font-size:15px;font-weight:500}
+.spin{width:18px;height:18px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:rot .8s linear infinite;flex:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+.pri[aria-busy=true]{cursor:progress}
+.stack{display:grid;gap:var(--s2)}
+.notice{margin:var(--s3) 0 0;padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:var(--r-md);color:var(--mut);font-size:15px}
+.notice .txt{display:inline-flex;vertical-align:baseline;min-height:44px;padding:0 var(--s1)}
+.msg.ok{color:var(--ink)}
+.fld{display:grid;gap:6px;margin-bottom:var(--s3)}.fld>span{font-size:14px;color:var(--mut)}
+.sbtn2{display:flex;align-items:center;justify-content:center;min-height:48px;width:100%;border:1px solid var(--line);border-radius:var(--r-md);transition:transform .16s var(--ease)}
+.sbtn2:active{transform:scale(.97)}
+.how{margin:var(--s2) 0 0;padding-left:var(--s5);color:var(--mut);font-size:15px;line-height:1.6}
+.how a{color:var(--ink)}
+@media(prefers-reduced-motion:reduce){.scan i{animation:none;transform:none}.spin{animation:none;border-right-color:currentColor;opacity:.5}}
+
 /* dock: vetro solo sugli strati che galleggiano */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:0 var(--s4) max(var(--s3),env(safe-area-inset-bottom));display:grid;gap:var(--s2);max-width:560px;margin:0 auto;pointer-events:none}
 .dock>*{pointer-events:auto}
@@ -137,7 +159,7 @@ img.prev{display:block;width:100%;max-height:220px;object-fit:cover;border-radiu
 .savebar .t{flex:1;line-height:1.15}.savebar .t small{display:block;color:var(--mut);font-size:13px}
 .savebar .num{font-size:30px;color:var(--acc)}
 .savebar .pri{width:auto;min-height:48px;flex:none}
-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px}
 nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:54px;border-radius:calc(var(--r-lg) - 6px);font:500 12px var(--sans);color:var(--mut);transition:background .2s var(--ease),color .2s var(--ease),transform .16s var(--ease)}
 nav button:active{transform:scale(.97)}
 nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
@@ -159,13 +181,6 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
   </div>
   <hr class="rule">
   <div id="meals"></div>
-  <details class="set"><summary>Impostazioni AI</summary>
-    <div class="body">
-      <select id="prov" aria-label="Servizio AI"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select>
-      <input id="key" type="password" placeholder="Chiave API" aria-label="Chiave API" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <div class="mut" id="keymsg" role="status" style="font-size:14px">La chiave resta solo su questo telefono.</div>
-    </div>
-  </details>
 </section>
 
 <section id="v-aggiungi" class="view hide">
@@ -177,13 +192,16 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
     <label><input type="radio" name="mt" value="Cena"><span>Cena</span></label>
   </fieldset>
 
-  <img id="prev" class="prev hide" alt="Anteprima del piatto">
-  <label class="pri" for="photo">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-    Fotografa il piatto</label>
+  <div class="shot hide" id="shot"><img id="prev" class="prev" alt="Anteprima del piatto"><div class="scan" id="scan"><i aria-hidden="true"></i><span id="scanTxt" role="status" aria-live="polite"></span></div></div>
+  <label class="pri" id="pickBtn" for="photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Scegli o scatta una foto</label>
   <input id="photo" type="file" accept="image/*" class="sr">
-  <input id="hint" placeholder="Indizio facoltativo" aria-label="Indizio sul piatto" style="margin-top:12px">
-  <p class="msg" id="aiMsg" role="status"></p>
+  <div class="stack hide" id="afterPick">
+    <input id="hint" placeholder="Indizio facoltativo (es. “con pesto”)" aria-label="Indizio sul piatto">
+    <button class="pri" id="analyze" type="button"><span class="spin hide" id="spin" aria-hidden="true"></span><span id="analyzeTxt">Analizza il piatto</span></button>
+    <label class="txt" for="photo" style="justify-self:center">Cambia foto</label>
+  </div>
+  <p class="msg" id="aiMsg" role="status" aria-live="polite"></p>
+  <p class="notice hide" id="nokey">Per analizzare le foto serve una chiave AI gratuita. <button class="txt ink" type="button" data-go="impostazioni">Impostala</button></p>
 
   <div class="sec"><h2>Aggiungi a mano</h2>
     <input id="q" type="search" placeholder="Cerca un alimento" aria-label="Cerca un alimento" autocomplete="off">
@@ -194,7 +212,7 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
     </details>
   </div>
 
-  <div class="sec"><h2>Piatto</h2>
+  <div class="sec" id="secPiatto"><h2>Piatto</h2>
     <div id="items"></div>
     <button class="txt" id="clear" type="button">Svuota piatto</button>
   </div>
@@ -203,6 +221,21 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
 
 <section id="v-storico" class="view hide">
   <h1>Storico</h1><div id="hist"></div>
+</section>
+<section id="v-impostazioni" class="view hide">
+  <h1>Impostazioni</h1>
+  <div class="sec" style="margin-top:0"><h2>Analisi con AI</h2>
+    <label class="fld"><span>Servizio</span><select id="prov"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select></label>
+    <label class="fld"><span>Chiave API</span><input id="key" type="password" placeholder="Incolla qui la chiave" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <button class="sbtn2" id="testKey" type="button">Verifica chiave</button>
+    <p class="msg" id="keymsg" role="status" aria-live="polite">La chiave resta solo su questo telefono.</p>
+    <details class="more"><summary>Come ottenere una chiave gratuita</summary>
+      <ol class="how"><li>Apri <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a> e accedi con Google.</li><li>Tocca “Create API key”.</li><li>Copia la chiave e incollala qui sopra.</li></ol></details>
+  </div>
+  <div class="sec"><h2>Dati</h2>
+    <button class="sbtn2" id="wipe" type="button">Cancella tutti i pasti</button>
+    <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p></div>
+  <p class="note">Carbo fornisce stime indicative e non è un dispositivo medico.</p>
 </section>
 </main>
 
@@ -215,6 +248,7 @@ nav button[aria-current=page]{background:color-mix(in srgb,var(--ink) 9%,transpa
     <button data-v="oggi" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>Oggi</button>
     <button data-v="aggiungi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>Aggiungi</button>
     <button data-v="storico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Storico</button>
+    <button data-v="impostazioni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>Impostazioni</button>
   </nav>
 </div>
 
@@ -230,6 +264,7 @@ const getKey=()=>{try{return localStorage.getItem("carbo_key_"+getProv())||""}ca
 let cur=[];
 let state={meals:[],goal:null};
 let view="oggi";
+const VIEWS=["oggi","aggiungi","storico","impostazioni"];
 
 const tdKey=ts=>{const d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const r1=x=>Math.round(x*10)/10;
@@ -285,8 +320,9 @@ function renderCur(){
 function syncDock(){$("savebar").classList.toggle("show",view==="aggiungi"&&cur.length>0)}
 function go(v){
   view=v;
-  ["oggi","aggiungi","storico"].forEach(n=>{const s=$("v-"+n);s.classList.toggle("hide",n!==v);if(n===v){s.style.animation="none";void s.offsetWidth;s.style.animation=""}});
+  VIEWS.forEach(n=>{const s=$("v-"+n);s.classList.toggle("hide",n!==v);if(n===v){s.style.animation="none";void s.offsetWidth;s.style.animation=""}});
   document.querySelectorAll("nav button").forEach(b=>{if(b.dataset.v===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  if(v==="aggiungi")checkKey();
   syncDock();window.scrollTo(0,0);
 }
 
@@ -309,7 +345,7 @@ $("q").oninput=e=>{
 };
 $("sug").onclick=e=>{const s=e.target.closest("[data-f]");if(!s)return;const f=DB[+s.dataset.f];cur.push({n:f.n,g:f.g,c100:f.c});$("q").value="";$("sug").innerHTML="";renderCur()};
 $("addc").onclick=()=>{const n=$("cn").value.trim(),c=+$("cc").value;if(!n||!(c>=0)||$("cc").value==="")return;cur.push({n,g:100,c100:c});$("cn").value="";$("cc").value="";renderCur()};
-function resetPlate(){cur=[];$("prev").classList.add("hide");$("aiMsg").textContent="";$("hint").value="";renderCur()}
+function resetPlate(){cur=[];photoBlob=null;$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";renderCur()}
 $("clear").onclick=resetPlate;
 $("save").onclick=()=>{
   if(!cur.length)return;
@@ -319,58 +355,134 @@ $("save").onclick=()=>{
 };
 
 // ---- AI: foto -> stima
+const GEMINI_MODELS=["gemini-flash-latest","gemini-2.5-flash","gemini-flash-lite-latest","gemini-2.5-flash-lite"];
+const CLAUDE_MODELS=["claude-sonnet-5-5","claude-haiku-5-5"];
+let photoBlob=null,busy=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function setMsg(t,cls){const m=$("aiMsg");m.className="msg"+(cls?" "+cls:"");m.textContent=t||""}
+function checkKey(){$("nokey").classList.toggle("hide",!!getKey())}
+
 async function shrink(file){
-  const bmp=await createImageBitmap(file);
-  const s=Math.min(1,1280/Math.max(bmp.width,bmp.height));
-  const c=document.createElement("canvas");c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);
+  let bmp;
+  try{bmp=await createImageBitmap(file)}
+  catch(e){bmp=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=URL.createObjectURL(file)})}
+  const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight,s=Math.min(1,1280/Math.max(w,h));
+  const c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);
   c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
-  return new Promise(res=>c.toBlob(res,"image/jpeg",.82));
+  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("toBlob")),"image/jpeg",.82));
+}
+function httpErr(status,body){
+  const raw=(body&&body.error&&(body.error.message||body.error.type))||"";
+  const e=new Error();e.status=status;
+  if((status===400&&/api key|API_KEY/i.test(raw))||status===401||status===403){e.message="Chiave non valida o senza permessi. Controllala in Impostazioni.";e.retry=false}
+  else if(status===429){e.message="Limite di richieste raggiunto (piano gratuito). Riprova tra un minuto.";e.retry=true}
+  else if(status===404||status>=500||status===529){e.message="Il servizio AI è molto richiesto in questo momento.";e.retry=true}
+  else{e.message="L'AI ha rifiutato la richiesta"+(raw?": "+raw.slice(0,120):"")+".";e.retry=false}
+  return e;
+}
+function unreadable(){const e=new Error("L'AI non ha dato una risposta leggibile.");e.retry=true;return e}
+async function askModel(prov,model,key,b64,prompt){
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
+  try{
+    let res;
+    if(prov==="gemini"){
+      res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-goog-api-key":key},
+        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}],generationConfig:{responseMimeType:"application/json"}})});
+    }else{
+      res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model,max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:prompt}]}]})});
+    }
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok)throw httpErr(res.status,j);
+    const txt=prov==="gemini"?((j.candidates||[])[0]?.content?.parts||[]).map(c=>c.text||"").join(""):(j.content||[]).map(c=>c.text||"").join("");
+    const m=txt.match(/\{[\s\S]*\}/);if(!m)throw unreadable();
+    try{return JSON.parse(m[0])}catch(_){throw unreadable()}
+  }catch(err){
+    if(err.name==="AbortError"){const e=new Error("L'AI sta impiegando troppo tempo.");e.retry=true;throw e}
+    if(err instanceof TypeError){const e=new Error("Nessuna connessione a internet.");e.retry=false;throw e}
+    throw err;
+  }finally{clearTimeout(to)}
+}
+async function callAI(b64,hint,stage){
+  const prov=getProv(),key=getKey(),models=prov==="gemini"?GEMINI_MODELS:CLAUDE_MODELS;
+  const prompt=`Sei un nutrizionista. Guarda la foto di un pasto (probabilmente cucina italiana/mediterranea). Elenca ogni alimento distinto visibile, stima il peso in grammi della porzione (usa piatto, posate e proporzioni come riferimento) e i carboidrati disponibili per 100 g dell'alimento così com'è nel piatto (cotto se cotto).${hint?" Indizio dell'utente: "+hint+".":""}
+Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
+  let last;
+  for(let i=0;i<models.length;i++){
+    for(let t=0;t<(i===0?2:1);t++){
+      stage(i===0?(t===0?"Riconosco gli alimenti…":"Servizio occupato, riprovo…"):"Servizio occupato, provo un altro modello…");
+      try{return await askModel(prov,models[i],key,b64,prompt)}
+      catch(err){last=err;if(!err.retry)throw err;if(i===0&&t===0)await sleep(1500)}
+    }
+  }
+  if(last.status!==429)last.message="Il servizio AI è sovraccarico: ho provato "+models.length+" modelli. Riprova tra qualche minuto o aggiungi a mano.";
+  throw last;
 }
 $("photo").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  const msg=$("aiMsg");msg.className="msg";msg.textContent="Analizzo la foto…";
+  setMsg("");
+  try{photoBlob=await shrink(f)}
+  catch(err){photoBlob=null;setMsg("Non riesco a leggere questa foto. Prova con un'altra.","err");return}
+  finally{e.target.value=""}
+  $("prev").src=URL.createObjectURL(photoBlob);
+  $("shot").classList.remove("hide");$("afterPick").classList.remove("hide");$("pickBtn").classList.add("hide");
+  $("analyzeTxt").textContent="Analizza il piatto";checkKey();
+};
+async function analyze(){
+  if(busy||!photoBlob)return;
+  if(!getKey()){setMsg("Manca la chiave AI: impostala per analizzare le foto.","err");checkKey();return}
+  busy=true;setMsg("");
+  $("analyze").setAttribute("aria-busy","true");$("analyzeTxt").textContent="Analisi in corso…";$("spin").classList.remove("hide");$("scan").classList.add("on");
+  const stage=t=>{$("scanTxt").textContent=t};
   try{
-    const blob=await shrink(f);
-    $("prev").src=URL.createObjectURL(blob);$("prev").classList.remove("hide");
-    const key=getKey();
-    if(!key){msg.className="msg err";msg.textContent="Inserisci prima la chiave API in Oggi → Impostazioni AI.";return}
-    const hint=$("hint").value.trim();
-    const prompt=`Sei un nutrizionista. Guarda la foto di un pasto (probabilmente cucina italiana/mediterranea). Elenca ogni alimento distinto visibile, stima il peso in grammi della porzione (usa piatto, posate e proporzioni come riferimento) e i carboidrati disponibili per 100 g dell'alimento così com'è nel piatto (cotto se cotto).${hint?" Indizio dell'utente: "+hint+".":""}
-Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero,"cho_per_100g":numero,"confidenza":"alta|media|bassa"}]}. Nomi in italiano, brevi. Includi condimenti solo se contribuiscono ai carboidrati in modo rilevante. Se non c'è cibo, items vuoto.`;
-    const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(",")[1]);fr.readAsDataURL(blob)});
-    let txt;
-    if(getProv()==="gemini"){
-      const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":key},
-        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}],generationConfig:{responseMimeType:"application/json"}})});
-      const j=await res.json();
-      if(!res.ok)throw new Error((j.error&&j.error.message)||res.status);
-      txt=((j.candidates||[])[0]?.content?.parts||[]).map(c=>c.text||"").join("");
-    }else{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({model:"claude-sonnet-5-5",max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:prompt}]}]})});
-      const j=await res.json();
-      if(!res.ok)throw new Error(res.status===401?"chiave non valida":(j.error&&j.error.message)||res.status);
-      txt=(j.content||[]).map(c=>c.text||"").join("");
+    stage("Preparo la foto…");
+    const b64=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(",")[1]);fr.onerror=j;fr.readAsDataURL(photoBlob)});
+    const out=await callAI(b64,$("hint").value.trim(),stage);
+    const items=((out&&out.items)||[]).filter(i=>i&&i.nome&&+i.grammi>0);
+    if(!items.length){setMsg("Non riconosco cibo in questa foto. Prova con un'altra o aggiungi a mano.")}
+    else{
+      cur=cur.filter(i=>!i.ai);
+      items.forEach(i=>cur.push({n:String(i.nome),g:+i.grammi,c100:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza}));
+      renderCur();
+      setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Controlla i grammi qui sotto.`,"ok");
+      $("secPiatto").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
     }
-    const m=txt.match(/\{[\s\S]*\}/);
-    const out=m?JSON.parse(m[0]):null;
-    const items=(out&&out.items)||[];
-    if(!items.length){msg.textContent="Non vedo cibo nella foto. Prova con un'altra o aggiungi a mano.";return}
-    items.forEach(i=>{if(i.nome&&i.grammi>0)cur.push({n:String(i.nome),g:+i.grammi,c100:Math.max(0,+i.cho_per_100g||0),ai:true,conf:i.confidenza})});
-    msg.textContent="Stima fatta: controlla e correggi i grammi se li conosci.";renderCur();
-  }catch(err){
-    msg.className="msg err";
-    msg.textContent="Analisi non riuscita: "+(err&&err.message||"errore")+". Puoi aggiungere a mano.";
-  }finally{e.target.value=""}
+    $("analyzeTxt").textContent="Analizza di nuovo";
+  }catch(err){setMsg(err.message||"Analisi non riuscita.","err");$("analyzeTxt").textContent="Riprova"}
+  finally{busy=false;$("analyze").removeAttribute("aria-busy");$("spin").classList.add("hide");$("scan").classList.remove("on")}
+}
+$("analyze").onclick=analyze;
+
+// ---- impostazioni
+$("testKey").onclick=async()=>{
+  const k=$("key").value.trim()||getKey(),m=$("keymsg");
+  if(!k){m.className="msg err";m.textContent="Incolla prima la chiave.";return}
+  try{localStorage.setItem("carbo_key_"+getProv(),k)}catch(_){}
+  m.className="msg";m.textContent="Verifico…";
+  try{
+    const res=getProv()==="gemini"
+      ?await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1",{headers:{"x-goog-api-key":k}})
+      :await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:1,messages:[{role:"user",content:"ok"}]})});
+    const j=await res.json().catch(()=>({}));
+    if(res.ok){m.className="msg ok";m.textContent="Chiave valida: l'analisi con AI è pronta.";checkKey()}
+    else{const e=httpErr(res.status,j);m.className="msg err";m.textContent=(e.status===429||e.status>=500)?"La chiave sembra valida, ma il servizio è occupato ora.":e.message}
+  }catch(e){m.className="msg err";m.textContent="Nessuna connessione a internet."}
+};
+let wipeT;
+$("wipe").onclick=()=>{
+  const b=$("wipe");
+  if(b.dataset.arm){delete b.dataset.arm;clearTimeout(wipeT);b.textContent="Cancella tutti i pasti";state.meals=[];persist();render();$("wipeMsg").textContent="Pasti cancellati."}
+  else{b.dataset.arm="1";b.textContent="Tocca di nuovo per confermare";wipeT=setTimeout(()=>{delete b.dataset.arm;b.textContent="Cancella tutti i pasti"},4000)}
 };
 
 $("prov").value=getProv();$("key").value=getKey();
 $("prov").onchange=e=>{try{localStorage.setItem("carbo_prov",e.target.value)}catch(x){}$("key").value=getKey()};
-$("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.value.trim())}catch(x){}$("keymsg").textContent="Chiave salvata su questo telefono."};
+$("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.value.trim())}catch(x){}$("keymsg").className="msg ok";$("keymsg").textContent="Chiave salvata su questo telefono.";checkKey()};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 const _l=lsGet();if(_l&&_l.meals)state=_l;
 const _t=document.querySelector('input[name=mt][value="'+defaultType()+'"]');if(_t)_t.checked=true;
-render();renderCur();
+render();renderCur();checkKey();
 </script>
 </body>
 </html>
