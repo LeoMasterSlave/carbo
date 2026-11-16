@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carbo Beta</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carbo β">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F4EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191816" media="(prefers-color-scheme: dark)">
+<script>try{var t=localStorage.getItem("carbo_theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main id="main">
+<section id="v-oggi" class="view">
+  <h1 class="sr">Oggi</h1>
+  <div class="hero">
+    <div class="hrow"><p class="dateline" id="date"></p>
+      <label class="goal">Obiettivo <input id="goal" type="number" inputmode="numeric" placeholder="—" aria-label="Obiettivo giornaliero in grammi"><span>g</span></label></div>
+    <div class="big"><span class="num" id="tot">0</span><span class="u">g</span><span class="lbl">di carboidrati oggi</span></div>
+    <div class="bar" id="bar" role="img" aria-label="Nessun pasto"></div>
+    <div class="meta"><span id="goalbar"></span><span id="mcount"></span></div>
+  </div>
+  <div class="nudge hide" id="nudge" role="status"><span id="nudgeT"></span><button class="txt ink" id="nudgeAdd" type="button">Aggiungi</button><button class="ibtn" id="nudgeX" type="button" aria-label="Non oggi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div id="meals"></div>
+  <div class="slots" id="slots"></div>
+</section>
+
+<section id="v-diario" class="view hide">
+  <h1>Diario</h1>
+  <input id="hq" type="search" placeholder="Cerca nello storico" aria-label="Cerca nello storico" autocomplete="off">
+  <div id="hist"></div>
+</section>
+
+<section id="v-altro" class="view hide">
+ <div id="altroMain">
+  <h1>Altro</h1>
+  <div class="group"><h2>Alimenti</h2>
+    <div class="list">
+      <button class="row nav-row" type="button" data-panel="fav"><span>Preferiti</span><span class="mut" id="favCount"></span></button>
+      <button class="row nav-row" type="button" data-panel="rcp"><span>Ricette</span><span class="mut" id="rcpCount"></span></button>
+    </div>
+  </div>
+  <div class="group"><h2>Promemoria</h2>
+    <div class="list" id="remList">
+      <div class="row"><span>Colazione</span><input type="time" data-rt="Colazione" aria-label="Orario colazione"><label class="sw"><input type="checkbox" data-ro="Colazione" aria-label="Promemoria colazione"><i></i></label></div>
+      <div class="row"><span>Pranzo</span><input type="time" data-rt="Pranzo" aria-label="Orario pranzo"><label class="sw"><input type="checkbox" data-ro="Pranzo" aria-label="Promemoria pranzo"><i></i></label></div>
+      <div class="row"><span>Cena</span><input type="time" data-rt="Cena" aria-label="Orario cena"><label class="sw"><input type="checkbox" data-ro="Cena" aria-label="Promemoria cena"><i></i></label></div>
+      <label class="row"><span>Avviso in Oggi se un pasto manca</span><span class="sw"><input type="checkbox" id="remNudge"><i></i></span></label>
+      <button class="row" id="remIcs" type="button">Aggiungi al Calendario</button>
+    </div>
+    <p class="msg" id="remMsg">Con l'app aperta, Carbo ti ricorda con discrezione i pasti attivi non ancora registrati. Per una notifica anche ad app chiusa, aggiungi i promemoria al Calendario del telefono: li modifichi o elimini da lì.</p>
+  </div>
+  <div class="group"><h2>Personalizzazione</h2>
+    <fieldset class="seg s3" id="theme"><legend class="sr">Tema</legend>
+      <label><input type="radio" name="theme" value="system"><span>Sistema</span></label>
+      <label><input type="radio" name="theme" value="light"><span>Chiaro</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Scuro</span></label>
+    </fieldset>
+  </div>
+  <div class="group"><h2>Analisi AI</h2>
+    <div class="list">
+      <label class="row"><span>Servizio</span><select id="prov"><option value="gemini">Google Gemini (gratis)</option><option value="anthropic">Anthropic Claude</option></select></label>
+      <label class="row"><span>Modello</span><select id="mdl"><option value="fast">Veloce (consigliato)</option><option value="accurate">Più accurato, più lento</option></select></label>
+      <label class="row"><span>Chiave API</span><input id="key" type="password" placeholder="Incolla qui la chiave" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <button class="row" id="testKey" type="button">Verifica chiave</button>
+    </div>
+    <p class="msg" id="keymsg" role="status" aria-live="polite">La chiave resta solo su questo telefono.</p>
+    <details class="more"><summary>Come ottenere una chiave gratuita</summary>
+      <ol class="how"><li>Apri <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a> e accedi con Google.</li><li>Tocca “Create API key”.</li><li>Copia la chiave e incollala qui sopra.</li></ol></details>
+  </div>
+  <div class="group"><h2>Dati</h2>
+    <div class="list">
+      <button class="row" id="backup" type="button">Esporta backup</button>
+      <button class="row danger" id="wipe" type="button">Cancella tutti i pasti</button>
+    </div>
+    <p class="msg" id="bkMsg" role="status" aria-live="polite"></p>
+    <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p>
+  </div>
+  <div class="group"><h2>Applicazione</h2>
+    <div class="list"><div class="row"><span>Versione</span><span class="mut" id="ver"></span></div></div>
+    <p class="note">Carbo fornisce stime indicative e non è un dispositivo medico.</p>
+  </div>
+ </div>
+ <div id="p-fav" class="panel hide">
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <h1>Preferiti</h1>
+  <p class="lead">Gli alimenti che usi spesso, con la quantità abituale. Aggiungili con la stella nel piatto.</p>
+  <div id="favList"></div>
+ </div>
+ <div id="p-rcp" class="panel hide">
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <h1>Ricette</h1>
+  <p class="lead">Componi il piatto con gli ingredienti, poi tocca “Salva come ricetta”. Modificare una ricetta non cambia i pasti già registrati.</p>
+  <button class="pri" type="button" id="newRecipe">Nuova ricetta</button>
+  <div id="rcpList"></div>
+ </div>
+</section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetT">
+  <div class="sheet-h" id="sheetH">
+    <span class="grab" aria-hidden="true"></span>
+    <h2 id="sheetT" tabindex="-1">Nuovo pasto</h2>
+    <button class="ibtn" id="closeSheet" type="button" aria-label="Chiudi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="sheet-b" id="sheetB">
+    <fieldset class="seg" id="mtype"><legend class="sr">Tipo di pasto</legend>
+      <label><input type="radio" name="mt" value="Colazione"><span>Colazione</span></label>
+      <label><input type="radio" name="mt" value="Pranzo"><span>Pranzo</span></label>
+      <label><input type="radio" name="mt" value="Spuntino"><span>Spuntino</span></label>
+      <label><input type="radio" name="mt" value="Cena"><span>Cena</span></label>
+    </fieldset>
+
+    <div class="shot hide" id="shot"><img id="prev" class="prev" alt="Anteprima del piatto"><div class="scan" id="scan"><i aria-hidden="true"></i><span id="scanTxt" role="status" aria-live="polite"></span></div></div>
+    <div class="acts2">
+      <label class="pri" id="pickBtn" for="photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Foto del piatto</label>
+      <button class="sec-btn" id="scanBtn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Codice a barre</button>
+    </div>
+    <input id="photo" type="file" accept="image/*" class="sr">
+    <div class="stack hide" id="afterPick">
+      <input id="hint" placeholder="Es. “126 g di pasta cruda”" aria-label="Indizio sul piatto">
+      <button class="pri" id="analyze" type="button"><span class="spin hide" id="spin" aria-hidden="true"></span><span id="analyzeTxt">Analizza il piatto</span></button>
+      <label class="txt" for="photo" style="justify-self:center">Cambia foto</label>
+    </div>
+    <p class="msg" id="aiMsg" role="status" aria-live="polite"></p>
+    <p class="notice hide" id="nokey">Per analizzare le foto serve una chiave AI gratuita. <button class="txt ink" type="button" data-go="altro">Impostala</button></p>
+
+    <div class="sec"><h2 class="sr">Cerca</h2>
+      <input id="q" type="search" placeholder="Cerca alimenti, preferiti, ricette" aria-label="Cerca alimenti, preferiti e ricette" autocomplete="off">
+      <div id="sug"></div>
+      <details class="more"><summary>Alimento non in elenco</summary>
+        <div class="cust"><input id="cn" placeholder="Nome" aria-label="Nome alimento"><input id="cc" type="number" inputmode="decimal" placeholder="CHO / 100 g" aria-label="Carboidrati per 100 grammi">
+          <button class="sbtn" id="addc" type="button">Aggiungi</button></div>
+      </details>
+    </div>
+
+    <div class="sec" id="secPiatto"><h2>Piatto</h2>
+      <div id="items"></div>
+      <div class="pacts" id="pacts">
+        <button class="txt" id="clear" type="button">Svuota piatto</button>
+        <button class="txt" id="asRecipe" type="button">Salva come ricetta</button>
+      </div>
+      <form class="rform hide" id="rform">
+        <label class="fld2"><span>Nome della ricetta</span><input id="rname" placeholder="Es. Lasagna della domenica" maxlength="80" required></label>
+        <label class="fld2 sv"><span>Porzioni</span><input id="rserv" type="number" inputmode="numeric" min="1" value="1"></label>
+        <p class="msg" id="rinfo"></p>
+        <div class="rbtn"><button class="txt" id="rcancel" type="button">Annulla</button><button class="pri" type="submit">Salva ricetta</button></div>
+      </form>
+    </div>
+    <p class="note">Le stime dell’AI sono indicative: pesi e carboidrati possono essere sbagliati, soprattutto con condimenti, salse e porzioni difficili da valutare. Correggi i grammi se li conosci. Non è un dispositivo medico: per dosare l’insulina o per decisioni cliniche affidati ai valori verificati e al tuo medico.</p>
+  </div>
+  <div class="scanner hide" id="scanner" role="region" aria-label="Scanner codice a barre">
+    <div class="sc-h"><button class="back" id="scanBack" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Pasto</button><h3>Codice a barre</h3><span></span></div>
+    <div class="sc-b">
+      <div class="vf" id="vf"><video id="scanVideo" playsinline muted aria-hidden="true"></video><i class="reticle" aria-hidden="true"></i><p class="vf-s" id="scanStatus" role="status" aria-live="polite"></p></div>
+      <form class="code" id="codeForm"><input id="codeIn" inputmode="numeric" autocomplete="off" placeholder="Oppure scrivi il codice (EAN)" aria-label="Codice a barre" maxlength="14"><button class="sbtn" type="submit">Cerca</button></form>
+      <div id="prod"></div>
+      <p class="note">Solo il codice a barre viene inviato a Open Food Facts, un database aperto compilato dalla comunità: controlla i valori sull'etichetta. I prodotti corretti o inseriti a mano restano su questo telefono.</p>
+    </div>
+  </div>
+  <div class="sheet-f">
+    <div class="t"><small>Totale piatto</small><span class="num"><span id="cur">0</span> g</span></div>
+    <button class="pri" id="save" type="button" disabled>Salva pasto</button>
+  </div>
+</div>
+
+<div class="dock" id="dock">
+  <nav class="glass" aria-label="Sezioni">
+    <button data-v="oggi" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>Oggi</button>
+    <button data-v="diario"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Diario</button>
+    <button data-v="altro"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.25"/><circle cx="12" cy="12" r="1.25"/><circle cx="19" cy="12" r="1.25"/></svg>Altro</button>
+  </nav>
+  <button class="fab" id="fab" type="button" aria-label="Aggiungi pasto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastT"></span><button id="toastU" type="button">Annulla</button></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
