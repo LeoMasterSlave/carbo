@@ -48,6 +48,8 @@ const r2 = x => Math.round(x * 100) / 100;
 export function snapFood(i) {
   const f = { n: String(i.n).slice(0, 80), c100: r2(+i.c100 || 0), u: i.u === "ml" ? "ml" : "g" };
   if (i.db) f.ref = i.db;
+  if (i.ean) f.ean = i.ean;
+  if (i.pz && i.pz.w > 0) f.pz = { w: i.pz.w, l: i.pz.l === "porzione" ? "porzione" : "pezzo" };
   return f;
 }
 export const foodKey = f => f.ref ?"db:" + f.ref : "n:" + String(f.n).toLowerCase().trim() + "|" + r2(f.c100) + "|" + (f.u || "g");

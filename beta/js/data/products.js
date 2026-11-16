@@ -3,11 +3,32 @@
 // A Open Food Facts viene inviato solo il codice a barre.
 
 const OFF = "https://world.openfoodfacts.org/api/v2/product/";
-const FIELDS = "code,product_name,product_name_it,generic_name_it,brands,quantity,nutriments,serving_quantity";
+const FIELDS = "code,product_name,product_name_it,generic_name_it,brands,quantity,nutriments,serving_quantity,serving_size";
 
 export class ProductError extends Error { constructor(code, msg) { super(msg); this.code = code } }
 
 const num = v => (v === "" || v == null || isNaN(+v)) ? null : +v;
+const dec = s => +String(s).replace(",", ".");
+
+// Peso di un pezzo (merendina, biscotto…) o di una porzione, dai dati della confezione.
+// Restituisce {w, l:"pezzo"|"porzione"} oppure null. Solo grammi: per i liquidi resta il volume.
+const PIECE = /biscott|merendin|pezz|barrett|snack|wafer|unit|piece|biscuit|bar\b|cookie|tortin|cornett|brioch|fett|crostatin|pacchett|monoporz/i;
+export function pieceOf(p) {
+  const qt = String(p.quantity || ""), sv = String(p.serving_size || "");
+  // confezioni multiple: "10 x 30 g", "6×35g"
+  const mp = qt.match(/(\d+)\s*[x×*]\s*(\d+(?:[.,]\d+)?)\s*g\b/i);
+  if (mp && dec(mp[2]) > 0) return { w: dec(mp[2]), l: "pezzo" };
+  // "2 biscotti (25 g)", "1 merendina (35 g)", "1 portion (30 g)"
+  const m = sv.match(/^\s*(\d+(?:[.,]\d+)?)\s*([^\d(]*?)\s*\(\s*(\d+(?:[.,]\d+)?)\s*g\s*\)/i);
+  if (m && dec(m[1]) > 0 && dec(m[3]) > 0) {
+    const n = dec(m[1]), w = dec(m[3]) / n;
+    return { w: Math.round(w * 10) / 10, l: PIECE.test(m[2]) ? "pezzo" : n === 1 ? "porzione" : "pezzo" };
+  }
+  // porzione senza conteggio: "30 g", "30.0g"
+  const sq = num(p.serving_quantity);
+  if (sq > 0 && sq <= 500 && (!sv || /^\s*\d+(?:[.,]\d+)?\s*g\s*$/i.test(sv))) return { w: Math.round(sq * 10) / 10, l: "porzione" };
+  return null;
+}
 
 // Normalizza la risposta di Open Food Facts. c100 = null se il dato manca o non è plausibile.
 export function parseOFF(p, code) {
@@ -18,7 +39,8 @@ export function parseOFF(p, code) {
   if (c == null && num(nu.carbohydrates) != null && (nu.carbohydrates_unit || "g") === "g") c = num(nu.carbohydrates);
   if (!(c >= 0 && c <= 100)) c = null;
   const u = /\b\d+(?:[.,]\d+)?\s*(ml|cl|dl|l)\b/i.test(p.quantity || "") ? "ml" : "g";
-  return { ean: code, n: n || "", brand, c100: c == null ? null : Math.round(c * 10) / 10, u, serving: num(p.serving_quantity), src: "off" };
+  const pz = u === "g" ? pieceOf(p) : null;
+  return { ean: code, n: n || "", brand, c100: c == null ? null : Math.round(c * 10) / 10, u, serving: num(p.serving_quantity), pz, src: "off" };
 }
 
 export async function fetchOFF(code, { timeout = 10000 } = {}) {
@@ -50,8 +72,14 @@ export function rememberProduct(lib, p, edited) {
   if (!lib.products || typeof lib.products !== "object") lib.products = {};
   lib.products[p.ean] = {
     n: String(p.n).trim().slice(0, 80), brand: p.brand || "", c100: Math.round((+p.c100 || 0) * 10) / 10,
-    u: p.u === "ml" ? "ml" : "g", serving: p.serving || null, src: edited ? "manual" : (p.src || "manual"), ts: Date.now()
+    u: p.u === "ml" ? "ml" : "g", serving: p.serving || null, pz: cleanPz(p.pz), src: edited ? "manual" : (p.src || "manual"), ts: Date.now()
   };
 }
+// {w,l} valido (peso del pezzo tra 0,1 e 1000 g) oppure null.
+export function cleanPz(pz) {
+  const w = pz && Math.round(+pz.w * 10) / 10;
+  return w >= 0.1 && w <= 1000 ? { w, l: pz.l === "porzione" ? "porzione" : "pezzo" } : null;
+}
+export const pzPlural = (l, n) => l === "porzione" ? (n === 1 ? "porzione" : "porzioni") : (n === 1 ? "pezzo" : "pezzi");
 
 export const productLabel = p => p.brand && !String(p.n).toLowerCase().includes(p.brand.toLowerCase()) ? `${p.n} (${p.brand})` : p.n;

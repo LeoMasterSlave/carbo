@@ -2,7 +2,7 @@ import{DB,LV,norm,isPre,dbByName,pairOf,swapState,setUnit,relevel,fromDB}from"./
 import{getProv,getKey,getMode,shrink,httpErr,analyzePhoto}from"./engine/ai.js";
 import{exportBackup,lastBackup,saveFile,APP_VERSION}from"./data/backup.js";
 import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
-import{lookupProduct,rememberProduct,productLabel}from"./data/products.js";
+import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
 
@@ -86,12 +86,20 @@ function renderCur(){
     const fv=!i.rid&&findFav(lib,i);
     const star=i.rid?"":`<button class="favb${fv?" on":""}" data-fav="${k}" type="button" aria-pressed="${fv?"true":"false"}" aria-label="${fv?"Togli dai preferiti":"Aggiungi ai preferiti"} ${esc(i.n)}">${fv?I_STAR_ON:I_STAR}</button>`;
     const askH=ask.length||(i.cand&&i.cand.length)?`<div class="ask ${ask.some(a=>a.b)?"":"ok"}" role="status">${ask.map(a=>esc(a.t)).join(" · ")}${i.cand&&i.cand.length?`<div>${i.cand.map(c=>`<button class="alt" data-alt="${k}" data-n="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`:""}${i.g>0&&ask.length?`<div><button class="alt" data-ok="${k}" type="button">Confermo</button></div>`:""}</div>`:"";
-    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}<span class="sub">${r1(i.c100)} g ogni 100 ${u}</span>${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${askH}</div>
+    const pz=i.pz&&i.pz.w>0?i.pz:null,byPz=pz&&!i.pzG;
+    const pzSub=pz?`<span class="sub">1 ${pz.l} = ${fmt(pz.w)} g (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} g in tutto`:""}</span>`:"";
+    const unitH=pz?`<button class="gu pzu" data-pzu="${k}" type="button" aria-label="${byPz?"Inserisci in grammi":"Inserisci a "+pzPlural(pz.l,2)}">${byPz?(pz.l==="porzione"?"porz.":"pz"):u}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg></button>`:`<span class="gu">${u}</span>`;
+    const stepH=byPz
+      ?`<button data-pstep="${k}" data-d="-1" type="button" aria-label="Un ${pz.l} in meno di ${esc(i.n)}">${I_MIN}</button>
+   <input type="number" inputmode="decimal" step="0.5" min="0" value="${i.g>0?r1(i.g/pz.w):""}" data-pn="${k}" aria-label="${pzPlural(pz.l,2)} di ${esc(i.n)}">${unitH}
+   <button data-pstep="${k}" data-d="1" type="button" aria-label="Un ${pz.l} in più di ${esc(i.n)}">${I_PLUS}</button>`
+      :`<button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
+   <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}">${unitH}
+   <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>`;
+    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}<span class="sub">${r1(i.c100)} g ogni 100 ${u}</span>${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${askH}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
-   <div class="stp"><button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
-   <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}"><span class="gu">${u}</span>
-   <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>${star}</div></div>`};
+   <div class="stp">${stepH}${star}</div></div>`};
   $("items").innerHTML=(showBlock&&blocked()?'<div class="msg err" role="alert">Conferma o correggi gli alimenti segnalati prima di salvare.</div>':"")+(cur.length?cur.map(itemHTML).join(""):'<div class="mut" style="padding:6px 0 2px">Ancora vuoto: fotografa il piatto o cerca un alimento.</div>');
   $("cur").textContent=total();
   $("save").disabled=!cur.length;
@@ -187,33 +195,38 @@ document.body.addEventListener("click",e=>{
   const fb=e.target.closest("[data-fav]");if(fb){
     const it=cur[+fb.dataset.fav],ex=findFav(lib,it);
     if(ex){const r=removeFav(lib,ex.id);persistLib();toast(`Tolto dai preferiti · ${it.n}`,()=>{lib.favorites.splice(r.index,0,r.item);persistLib();renderCur();renderLibPanels()})}
-    else{const f=addFav(lib,it);persistLib();toast(f.g>0?`Nei preferiti · ${fmt(f.g)} ${f.u} abituali`:`Nei preferiti · ${it.n}`)}
+    else{const f=addFav(lib,it);persistLib();toast(f.g>0?`Nei preferiti · ${qty(f.g,f.u,f.pz)} abituali`:`Nei preferiti · ${it.n}`)}
     renderCur();renderLibPanels();
   }
   const pn=e.target.closest("[data-panel]");if(pn)showPanel(pn.dataset.panel);
   const ad=e.target.closest("[data-add]");if(ad)openSheet(ad.dataset.add);
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
   const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step,it=cur[k];it.g=Math.max(0,Math.round(it.g)+(+s.dataset.d));setWeight(it);renderCur()}
+  const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);setWeight(it);renderCur()}
+  const pu=e.target.closest("[data-pzu]");if(pu){const it=cur[+pu.dataset.pzu];it.pzG=!it.pzG;renderCur();const f=document.querySelector(`[data-pn="${pu.dataset.pzu}"],[data-g="${pu.dataset.pzu}"]`);if(f)f.focus()}
   const ok=e.target.closest("[data-ok]");if(ok){const it=cur[+ok.dataset.ok];it.ask=[];it.cand=[];relevel(it);renderCur()}
   const alt=e.target.closest("[data-alt]");if(alt){const it=cur[+alt.dataset.alt],f=dbByName(alt.dataset.n);if(f){const u0=it.u||"g";it.n=f.n;it.c100=f.c;it.db=f.n;it.st=f.st||null;it.prov=!!f.p;it.cand=[];it.ask=it.ask.filter(a=>a.k==="weight");if(f.cmp)it.ask.push({k:"cmp",t:f.nt||"Piatto composto"});setUnit(it,f,u0);it.lvl="media";relevel(it);renderCur()}}
   const g=e.target.closest("[data-go]");if(g)go(g.dataset.go);
 });
 function setWeight(it){if(it.g>0)it.ask=(it.ask||[]).filter(a=>a.k!=="weight"),relevel(it)}
 $("items").addEventListener("input",e=>{
+  const pn=e.target.dataset.pn;
+  if(pn!=null){const it=cur[pn];it.g=r1(Math.max(0,+e.target.value||0)*it.pz.w);setWeight(it);
+    e.target.closest(".item").querySelector(".c").textContent=r1(itemC(it));$("cur").textContent=total();return}
   const k=e.target.dataset.g;if(k==null)return;cur[k].g=Math.max(0,+e.target.value||0);setWeight(cur[k]);
   e.target.closest(".item").querySelector(".c").textContent=r1(itemC(cur[k]));
   $("cur").textContent=total();
 });
 $("items").addEventListener("change",e=>{
-  if(e.target.dataset.g!=null){renderCur();return}
+  if(e.target.dataset.g!=null||e.target.dataset.pn!=null){renderCur();return}
   const k=e.target.dataset.raw;if(k==null)return;
   swapState(cur[k]);renderCur();
 });
 // ---- ricerca unificata: ricette, preferiti, recenti, database
-const qty=(g,u)=>g>0?`${fmt(g)} ${u||"g"}`:"";
+const qty=(g,u,pz)=>{if(!(g>0))return"";const c=cleanPz(pz);if(c){const n=r1(g/c.w);if(Math.abs(n-Math.round(n))<.05)return `${fmt(n)} ${pzPlural(c.l,n)}`}return `${fmt(g)} ${u||"g"}`};
 const pickRow=(kind,key,icon,name,info)=>`<button class="sug pick" type="button" data-pick="${kind}" data-k="${esc(key)}"><span class="pn">${icon}<span>${esc(name)}</span></span><small>${info}</small></button>`;
-const favRow=f=>pickRow("fav",f.id,I_STAR_S,f.n,[qty(f.g,f.u),`${fmt(f.c100)} g/100`].filter(Boolean).join(" · "));
-const recRow=(f,k)=>pickRow("rec",k,I_CLOCK,f.n,[qty(f.g,f.u),`${fmt(f.c100)} g/100`].filter(Boolean).join(" · "));
+const favRow=f=>pickRow("fav",f.id,I_STAR_S,f.n,[qty(f.g,f.u,f.pz),`${fmt(f.c100)} g/100`].filter(Boolean).join(" · "));
+const recRow=(f,k)=>pickRow("rec",k,I_CLOCK,f.n,[qty(f.g,f.u,f.pz),`${fmt(f.c100)} g/100`].filter(Boolean).join(" · "));
 const rcpRow=r=>{const s=recipeStats(r);return pickRow("rcp",r.id,I_BOOK,r.n,`${Math.round(s.servCho)} g a porzione`)};
 const grp=(t,rows)=>rows.length?`<div class="pgrp"><h3>${t}</h3>${rows.join("")}</div>`:"";
 function renderSug(){
@@ -235,6 +248,8 @@ function itemFromFood(f,g){
   let i;
   if(d&&d.c===f.c100&&(d.u||"g")===(f.u||"g")){i=fromDB(d);i.n=f.n}
   else i={n:f.n,g:0,u:f.u||"g",c100:f.c100,ask:[{k:"weight",t:"Inserisci il peso",b:1}],cand:[]};
+  if(f.ean)i.ean=f.ean;
+  if(cleanPz(f.pz))i.pz=cleanPz(f.pz);
   if(g>0){i.g=g;setWeight(i)}else relevel(i);
   return i;
 }
@@ -266,7 +281,7 @@ $("save").onclick=()=>{
   if(blocked()){showBlock=true;renderCur();$("items").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});return}
   const t=total(),type=mealType();
   // snapshot dei valori usati ora: i pasti non dipendono da preferiti, ricette o database
-  const items=cur.map(i=>({n:i.n,g:i.g,u:i.u||"g",c100:i.c100,...(i.db?{ref:i.db}:{}),...(i.rid?{rid:i.rid}:{}),...(i.ean?{ean:i.ean}:{})}));
+  const items=cur.map(i=>({n:i.n,g:i.g,u:i.u||"g",c100:i.c100,...(i.db?{ref:i.db}:{}),...(i.rid?{rid:i.rid}:{}),...(i.ean?{ean:i.ean}:{}),...(cleanPz(i.pz)?{pz:cleanPz(i.pz)}:{})}));
   const old=editId&&state.meals.find(m=>m.id===editId);
   if(old){old.type=type;old.items=items;old.total=t;old.edited=Date.now()}
   else state.meals.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),type,items,total:t});
@@ -281,6 +296,8 @@ function itemFromSaved(s){
   const d=s.ref&&dbByName(s.ref);
   if(d&&d.c===s.c100){i.db=d.n;i.st=d.st||null;i.prov=!!d.p}
   if(s.rid)i.rid=s.rid;
+  if(s.ean)i.ean=s.ean;
+  if(cleanPz(s.pz))i.pz=cleanPz(s.pz);
   relevel(i);return i;
 }
 function editMeal(id){
@@ -399,7 +416,7 @@ function showPanel(p){
   $("p-rcp").classList.toggle("hide",panel!=="rcp");
   renderLibPanels();window.scrollTo(0,0);
 }
-const favSum=f=>[f.g>0?`${fmt(f.g)} ${f.u} abituali`:"quantità non impostata",`${fmt(f.c100)} g/100 ${f.u}`].join(" · ");
+const favSum=f=>[f.g>0?`${qty(f.g,f.u,f.pz)} abituali`:"quantità non impostata",`${fmt(f.c100)} g/100 ${f.u}`].join(" · ");
 const rcpSum=r=>{const s=recipeStats(r);return `${s.servings} ${s.servings===1?"porzione":"porzioni"} · ${Math.round(s.servCho)} g CHO a porzione`};
 const totLine=r=>{const s=recipeStats(r);return `Totale ${Math.round(s.w)} g · ${fmt(s.cho)} g CHO. Porzione ${Math.round(s.servW)} g · ${fmt(s.servCho)} g CHO.`};
 const openIds=()=>new Set([...document.querySelectorAll(".lrow[open]")].map(d=>d.dataset.id));
@@ -554,7 +571,8 @@ async function findProduct(code){
   catch(e){showProduct(blank,"error",e.message)}
 }
 function showProduct(p,from,err){
-  prodCur={...p,from,orig:{n:p.n,c100:p.c100}};
+  const pz=p.u==="g"?cleanPz(p.pz):null;
+  prodCur={...p,pz,from,orig:{n:p.n,c100:p.c100,w:pz?pz.w:null},byPz:p.u==="g"};
   const src={off:"Trovato su Open Food Facts",local:"Salvato su questo telefono",missing:"Prodotto non trovato: inserisci i valori dall'etichetta. Lo ricorderò per la prossima volta."}[from]||err;
   const warn=from==="missing"||from==="error";
   $("prod").innerHTML=`<div class="pcard">
@@ -562,29 +580,70 @@ function showProduct(p,from,err){
     ${p.c100==null&&from==="off"?`<p class="psrc warn">Carboidrati mancanti nel database: leggili sull'etichetta.</p>`:""}
     <label class="fld2"><span>Nome</span><input id="pN" value="${esc(p.n)}" maxlength="80" placeholder="Es. Fette biscottate integrali"></label>
     <p class="pbrand">${p.brand?esc(p.brand)+" · ":""}EAN ${esc(p.ean)}</p>
-    <div class="two"><label class="fld2"><span>CHO ogni 100 ${p.u}</span><input id="pC" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="${p.c100??""}"></label>
-    <label class="fld2"><span>Quantità (${p.u})</span><input id="pG" type="number" inputmode="decimal" min="0" placeholder="${p.serving?"Porzione "+Math.round(p.serving):""}"></label></div>
+    ${p.u==="g"?`<div class="two"><label class="fld2"><span>CHO ogni 100 g</span><input id="pC" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="${p.c100??""}"></label>
+    <label class="fld2"><span>1 ${pz?pz.l:"pezzo"} pesa (g)</span><input id="pW" type="number" inputmode="decimal" min="0" step="0.1" value="${pz?pz.w:""}" placeholder="dall'etichetta"></label></div>
+    <p class="phint" id="pWh">${pz?(from==="local"?"Peso salvato su questo telefono.":"Peso dalla confezione su Open Food Facts: controllalo sull'etichetta."):"Sull'etichetta di solito c'è scritto, per esempio: “1 merendina = 35 g” o “10 x 30 g”. Lo ricorderò."}</p>
+    <div class="pq"><div class="seg sm" role="group" aria-label="Quantità in">
+      <button type="button" data-pm="pz" aria-pressed="true">${pz&&pz.l==="porzione"?"Porzioni":"Pezzi"}</button><button type="button" data-pm="g" aria-pressed="false">Grammi</button></div>
+      <div class="stp pstp"><button type="button" data-pq="-1" aria-label="Uno in meno">${I_MIN}</button><input id="pG" type="number" inputmode="decimal" min="0" step="0.5" value="1" aria-label="Quantità"><span class="gu" id="pGu"></span><button type="button" data-pq="1" aria-label="Uno in più">${I_PLUS}</button></div></div>`
+    :`<div class="two"><label class="fld2"><span>CHO ogni 100 ${p.u}</span><input id="pC" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="${p.c100??""}"></label>
+    <label class="fld2"><span>Quantità (${p.u})</span><input id="pG" type="number" inputmode="decimal" min="0" placeholder="${p.serving?"Porzione "+Math.round(p.serving):""}"></label></div>`}
     <p class="ptot" id="pT"></p><p class="msg err" id="pE"></p>
     <div class="rbtn"><button class="txt" type="button" id="pAgain">Scansiona un altro</button><button class="pri" type="button" id="pAdd">Aggiungi al piatto</button></div>
   </div>`;
   updProd();
 }
+// Quantità della scheda prodotto in grammi (o ml), qualunque sia la modalità scelta.
+function prodGrams(){
+  const q=+$("pG").value||0;
+  if(!$("pW")||!prodCur.byPz)return q;
+  const w=+$("pW").value||0;return w>0?q*w:0;
+}
+function prodLabelPz(){return prodCur.pz&&prodCur.pz.l==="porzione"?"porzione":"pezzo"}
 function updProd(){
-  const cs=$("pC").value,g=+$("pG").value;
-  $("pT").textContent=cs!==""&&g>0?`${fmt(g*(+cs)/100)} g di carboidrati`:"";
+  const cs=$("pC").value,c=+cs,g=prodGrams(),pw=$("pW");
+  let t="";
+  if(pw){
+    const w=+pw.value||0,l=prodLabelPz(),q=+$("pG").value||0;
+    $("pGu").textContent=prodCur.byPz?pzPlural(l,q===1?1:2):"g";
+    const per=w>0&&cs!==""?`1 ${l} = ${fmt(w*c/100)} g di carboidrati`:"";
+    if(prodCur.byPz&&!(w>0))t="Inserisci quanto pesa 1 "+l+", oppure passa a Grammi.";
+    else if(cs!==""&&g>0)t=`${prodCur.byPz?`${fmt(q)} ${pzPlural(l,q)} · ${fmt(g)} g → `:""}${fmt(g*c/100)} g di carboidrati`;
+    $("pT").innerHTML=esc(t)+(per&&(!prodCur.byPz||q!==1)?`<small>${esc(per)}</small>`:"");
+    return;
+  }
+  $("pT").textContent=cs!==""&&g>0?`${fmt(g*c/100)} g di carboidrati`:"";
 }
 $("prod").addEventListener("input",updProd);
 $("prod").addEventListener("click",e=>{
   if(e.target.closest("#pAgain")){$("prod").innerHTML="";$("codeIn").value="";startCam();return}
+  const pm=e.target.closest("[data-pm]");
+  if(pm&&prodCur){
+    const toPz=pm.dataset.pm==="pz";if(toPz===prodCur.byPz)return;
+    const w=+$("pW").value||0,q=+$("pG").value||0;
+    // conserva la quantità quando si cambia modalità
+    $("pG").value=q>0&&w>0?(toPz?r1(q/w):r1(q*w)):(toPz?1:"");
+    $("pG").step=toPz?"0.5":"1";
+    prodCur.byPz=toPz;
+    document.querySelectorAll("#prod [data-pm]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.pm===pm.dataset.pm)));
+    updProd();return;
+  }
+  const pq=e.target.closest("[data-pq]");
+  if(pq&&prodCur){const d=+pq.dataset.pq*(prodCur.byPz?1:10),v=Math.max(0,(+$("pG").value||0)+d);$("pG").value=prodCur.byPz?v:Math.round(v);updProd();return}
   if(!e.target.closest("#pAdd")||!prodCur)return;
-  const n=$("pN").value.trim(),cs=$("pC").value,c=+cs,g=+$("pG").value||0;
+  const n=$("pN").value.trim(),cs=$("pC").value,c=+cs,g=r1(prodGrams());
+  const wIn=$("pW")?+$("pW").value||0:0,pz=wIn>0?cleanPz({w:wIn,l:prodLabelPz()}):null;
   if(!n){$("pE").textContent="Inserisci il nome del prodotto.";$("pN").focus();return}
   if(cs===""||!(c>=0&&c<=100)){$("pE").textContent="Inserisci i carboidrati ogni 100 (tra 0 e 100).";$("pC").focus();return}
-  const edited=n!==prodCur.orig.n||c!==prodCur.orig.c100;
-  rememberProduct(lib,{...prodCur,n,c100:c},edited);persistLib();
+  if($("pW")&&$("pW").value!==""&&!pz){$("pE").textContent="Il peso di 1 "+prodLabelPz()+" deve essere tra 0,1 e 1000 g.";$("pW").focus();return}
+  if(prodCur.byPz&&$("pW")&&!pz){$("pE").textContent="Inserisci quanto pesa 1 "+prodLabelPz()+", oppure passa a Grammi.";$("pW").focus();return}
+  const edited=n!==prodCur.orig.n||c!==prodCur.orig.c100||(pz?pz.w:null)!==prodCur.orig.w;
+  rememberProduct(lib,{...prodCur,n,c100:c,pz},edited);persistLib();
   const it={n:productLabel({n,brand:prodCur.brand}),g:0,u:prodCur.u,c100:c,ask:[],cand:[],ean:prodCur.ean};
-  if(g>0)it.g=g;else it.ask.push({k:"weight",t:"Inserisci il peso",b:1});
-  relevel(it);closeScanner();addToPlate(it);
+  if(pz){it.pz=pz;if(!prodCur.byPz)it.pzG=true}
+  if(g>0)it.g=g;else it.ask.push({k:"weight",t:"Inserisci la quantità",b:1});
+  relevel(it);closeScanner();
+  addToPlate(it,pz&&prodCur.byPz&&g>0?`${it.n} · ${qty(g,"g",pz)}`:null);
 });
 
 // ---- promemoria
