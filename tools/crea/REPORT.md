@@ -6,8 +6,29 @@ Generato da `node tools/crea/build.mjs` da database_alimenti.xlsx. Righe lette: 
 - Con porzione standard: 827 (di cui 0 convertite da peso lordo a edibile)
 - Porzione non importata perché incoerente con i CHO per porzione: 3
 - Senza porzione nel file: 1
+- Normalizzate ad amido + zuccheri (valore diverso dal pubblicato): 230
 - Tracce (tr → 0): 21
 - Scartate: 1
+
+## Normalizzazione amido + zuccheri (esempi con lo scarto maggiore)
+
+| riga | alimento | pubblicato | adottato |
+|---|---|---|---|
+| 278 | Farina di manioca | 87.2 | 79.3 |
+| 415 | Mais, amido | 87 | 79.2 |
+| 289 | Fecola di patate | 90.7 | 83.3 |
+| 681 | Riso Basmati, crudo | 82.9 | 75.5 |
+| 688 | Riso, parboiled | 81.3 | 73.9 |
+| 684 | Riso, brillato | 80.4 | 73.1 |
+| 519 | Pane azzimo | 81.7 | 74.4 |
+| 279 | Farina di riso | 79.1 | 71.9 |
+| 632 | Pop corn | 77.9 | 70.8 |
+| 683 | Riso Venere, crudo | 80.4 | 73.3 |
+| 213 | Corn flakes | 87.4 | 80.4 |
+| 686 | Riso, integrale | 77.4 | 70.5 |
+| 690 | Riso, soffiato, da prima colazione | 85.1 | 78.2 |
+| 726 | Semola | 76.9 | 70.1 |
+| 219 | Couscous, crudo | 76.5 | 69.8 |
 
 ## Porzioni non importate (incoerenti)
 
@@ -46,5 +67,5 @@ Generato da `node tools/crea/build.mjs` da database_alimenti.xlsx. Righe lette: 
 - riga 2: Caramelle tipo ""mou → Caramelle tipo mou
 
 ## Scartate
-- riga 823: Zucchero, saccarosio — carboidrati/100 g non leggibili ("104.5")
+- riga 823: Zucchero, saccarosio — valore oltre 100 g/100 g anche normalizzato (104.5): zuccheri espressi in monosaccaridi
 

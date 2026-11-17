@@ -39,11 +39,17 @@ const val = s => s === "tr" ? 0 : s === "" ? null : +String(s).replace(",", ".")
 const cleanName = s => s.replace(/"+/g, "").replace(/\s+/g, " ").trim();
 
 const rows = parseCSV(readFileSync(CSV, "utf8"));
-const rep = { tr: [], noPor: [], gross: [], badPor: [], skipped: [], renamed: [] };
+const rep = { norm: [], tr: [],noPor: [], gross: [], badPor: [], skipped: [], renamed: [] };
 const foods = [];
 for (const r of rows) {
-  const c100 = val(r.carboidrati_g_100g);
-  if (!(c100 >= 0 && c100 <= 100)) { rep.skipped.push({ r, why: `carboidrati/100 g non leggibili ("${r.carboidrati_g_100g}")` }); continue }
+  // Regola §9.5 del report: CREA = amido + zuccheri (a peso). Il valore pubblicato è amido × 1,1 + zuccheri
+  // (monosaccaridi, formula verificata 6/6), quindi amido = (pubblicato − zuccheri) / 1,1. Senza zuccheri la voce non entra.
+  const pub = val(r.carboidrati_g_100g), zuc = val(r.zuccheri_g_100g);
+  if (!(pub >= 0)) { rep.skipped.push({ r, why: `carboidrati/100 g non leggibili ("${r.carboidrati_g_100g}")` }); continue }
+  if (!(zuc >= 0)) { rep.skipped.push({ r, why: "zuccheri mancanti: amido non ricavabile" }); continue }
+  const c100 = zuc >= pub ? pub : r1((pub - zuc) / 1.1 + zuc);
+  if (Math.abs(c100 - pub) > 0.05) rep.norm.push({ r, pub, c100 });
+  if (!(c100 <= 100)) { rep.skipped.push({ r, why: `valore oltre 100 g/100 g anche normalizzato (${c100}): zuccheri espressi in monosaccaridi` }); continue }
   const n = cleanName(r.alimento);
   if (n !== r.alimento) rep.renamed.push({ r, n });
   if (r.carboidrati_g_100g === "tr") rep.tr.push(r);
@@ -51,12 +57,13 @@ for (const r of rows) {
   const units = [];
   if (w > 0 && w <= 2000) {
     const unit = (ww, t) => units.push({ t, w: r1(ww), l: "porzione", base: "edibile", src: "CREA" });
-    if (cp == null || c100 === 0) unit(w, "1 porzione CREA");
+    // coerenza del peso della porzione: confronto con il valore pubblicato (stessa base dei CHO per porzione del file)
+    if (cp == null || pub === 0) unit(w, "1 porzione CREA");
     else {
       const tol = x => Math.abs(x - cp) <= Math.max(0.15, cp * 0.06);
-      if (tol(c100 * w / 100)) unit(w, "1 porzione CREA");
-      else if (ed > 0 && ed < 100 && tol(c100 * w * ed / 10000)) { unit(w * ed / 100, `1 porzione CREA (${w} g lordi)`); rep.gross.push({ r, w, ed }) }
-      else rep.badPor.push({ r, w, cp, exp: r1(c100 * w / 100) });
+      if (tol(pub * w / 100)) unit(w, "1 porzione CREA");
+      else if (ed > 0 && ed < 100 && tol(pub * w * ed / 10000)) { unit(w * ed / 100, `1 porzione CREA (${w} g lordi)`); rep.gross.push({ r, w, ed }) }
+      else rep.badPor.push({ r, w, cp, exp: r1(pub * w / 100) });
     }
   } else rep.noPor.push(r);
   const code = r.codice_alimento;
@@ -73,7 +80,7 @@ const cids = new Set(); for (const f of foods) { if (cids.has(f.cid)) throw new 
 
 writeFileSync(OUT, JSON.stringify({
   format: "carbo-catalog", version: 1, generated: new Date().toISOString().slice(0, 10),
-  basis: "g di carboidrati disponibili per 100 g di parte edibile (CREA); tr = tracce, conteggiate come 0",
+  basis: "g di carboidrati disponibili per 100 g di parte edibile, a peso: amido + zuccheri (CREA pubblica amido × 1,1 + zuccheri, conservato in src.orig.cho100); tr = tracce, conteggiate come 0",
   sources: { crea: { name: "CREA – Centro di ricerca Alimenti e Nutrizione", dataset: "Tabelle di composizione degli alimenti (agg. dicembre 2019)", url: "https://www.alimentinutrizione.it/tabelle-nutrizionali", file: FILE_NAME } },
   foods
 }) + "\n");
@@ -83,7 +90,10 @@ const rr = x => `riga ${x._row ?? x.r._row}: ${(x.alimento ?? x.r.alimento)}`;
 L.push("# Import CREA → beta/data/foods-crea.json", "", `Generato da \`node tools/crea/build.mjs\` da ${FILE_NAME}. Righe lette: ${rows.length}.`, "");
 L.push(`- Voci importate: **${foods.length}**`, `- Con porzione standard: ${foods.filter(f => f.units.length).length} (di cui ${rep.gross.length} convertite da peso lordo a edibile)`,
   `- Porzione non importata perché incoerente con i CHO per porzione: ${rep.badPor.length}`, `- Senza porzione nel file: ${rep.noPor.length}`,
+  `- Normalizzate ad amido + zuccheri (valore diverso dal pubblicato): ${rep.norm.length}`,
   `- Tracce (tr → 0): ${rep.tr.length}`, `- Scartate: ${rep.skipped.length}`, "");
+L.push("## Normalizzazione amido + zuccheri (esempi con lo scarto maggiore)", "", "| riga | alimento | pubblicato | adottato |", "|---|---|---|---|",
+  ...[...rep.norm].sort((a, b) => (b.pub - b.c100) - (a.pub - a.c100)).slice(0, 15).map(x => `| ${x.r._row} | ${x.r.alimento} | ${x.pub} | ${x.c100} |`), "");
 L.push("## Porzioni non importate (incoerenti)", "", "| riga | alimento | porzione | CHO porzione file | atteso da c100 |", "|---|---|---|---|---|", ...rep.badPor.map(x => `| ${x.r._row} | ${x.r.alimento} | ${x.w} g | ${x.cp} | ${x.exp} |`), "");
 L.push("## Porzioni in peso lordo (convertite in edibile)", ...rep.gross.map(x => `- ${rr(x)} — ${x.w} g lordi × ${x.ed}% = ${r1(x.w * x.ed / 100)} g`), "");
 L.push("## Tracce", ...rep.tr.map(r => `- ${rr(r)}`), "");
