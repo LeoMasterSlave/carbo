@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · versione beta `2.0.0-alpha.9` **in locale, non pubblicata** · online: `2.0.0-alpha.8` (commit `ae177f7`)
+Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · online: `2.0.0-alpha.9` (commit `1b4cc56`) · in locale, non pubblicata: `2.0.0-alpha.10` (pannello Aggiungi più compatto, §5; SW v19)
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -138,6 +138,13 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
   - `#v-altro`: Alimenti (pannelli `#p-fav`, `#p-rcp`), Promemoria, Personalizzazione, Analisi AI, Dati, Applicazione (pannello `#p-src` Fonti dei dati).
 - Piatto: le voci del catalogo hanno l'etichetta di fonte (`.tag.src`) e i chip delle porzioni (`.chips`/`.chip`). Toccare un chip imposta 1 porzione e passa al conteggio a pezzi; i grammi restano modificabili.
 - Pannello Aggiungi `#sheet`: tipo di pasto, Foto / Codice a barre, ricerca, piatto, salva come ricetta, totale e Salva. Su telefono si chiude trascinando verso il basso; da 768 px in su è una finestra modale.
+- Pannello Aggiungi, alpha.10 (17/11/2026, richiesta dell'utente; verificato nel browser, non pubblicato):
+  - a ricerca vuota: tendine `details.pdrop` **Preferiti**, **Recenti**, **Ricette** (in fondo), chiuse di default con il numero di voci; l'ultima apertura è ricordata in `carbo_drops` (solo comodità, nessun dato dei pasti). Nei risultati di ricerca le ricette sono in fondo;
+  - righe di ricerca: il nome ha tutta la larghezza, i dettagli vanno a capo sotto quando non ci stanno. Testo ridotto a "≈ 76,3 g/100 g · STIMA" (l'intervallo è nei dettagli);
+  - piatto compatto: nome, tag, "g/100", porzioni e quantità. Toccando il nome (`data-more`, freccia) si aprono intervallo, note di affidabilità, porzione in g di CHO e fonte delle porzioni. `more` resta solo nell'interfaccia e non viene salvato;
+  - avvertenze (`.note.fine`) a 10 px;
+  - zoom disattivato: viewport `maximum-scale=1, user-scalable=no`, `touch-action:manipulation`, blocco di `gesturestart` e del pinch (Safari iOS ignora `user-scalable`). ⚠️ Chi ha bisogno di ingrandire deve usare lo Zoom di iOS (Accessibilità);
+  - tipo di pasto automatico in base all'ora: c'era già (`defaultType`: <10 Colazione, <15 Pranzo, <18 Spuntino, poi Cena), applicato all'apertura del pannello con il piatto vuoto.
 - Scanner `#scanner`: mirino, inserimento manuale del codice, scheda prodotto.
 - Dock in vetro con tre schede e pulsante + centrale; toast con "Annulla".
 - Design system (`beta/css/app.css`, `:root`):
@@ -396,7 +403,7 @@ Discrepanze da tenere presenti:
   - `git diff` su `beta/js/engine` vuoto.
 - Altri file: `catalog.js` (caricamento), `app.js` (`unitsOf`, `askPortion`, chip con unità, crudo/cotto), `index.html` (voce LARN in Fonti), `app.css` (`.chsrc`), `sw.js` v15, `backup.js` alpha.6.
 
-### 9.12 Elenco alimenti dell'utente (17/11/2026) — verificato nel browser, non pubblicato
+### 9.12 Elenco alimenti dell'utente (17/11/2026) — verificato nel browser, pubblicato in alpha.9 (non provato su iPhone)
 - Fonte: `database_carbo_260_alimenti.csv` fornito dall'utente (260 righe: 214 stime "da verificare", 32 con porzione da documento istituzionale e CHO stimati, 14 da etichetta del produttore). Copia in `tools/userdb/alimenti-260.csv`.
 - Regole dell'utente, come sono state applicate da `tools/userdb/build.mjs`:
   - **valore centrale + intervallo:** `c100` = media dei punti centrali per 100 g, usata nei calcoli; `rng` (per 100 g) e `r` (g di CHO per porzione) sono mostrati con "≈" e "stima lo–hi";
@@ -415,7 +422,10 @@ Discrepanze da tenere presenti:
   - motore AI: hash `5a9885b0`, 133,1 g, `gemini-2.5-flash-lite`;
   - console senza errori; 375 px senza scorrimento orizzontale;
   - `git diff` vuoto su `beta/js/engine`, `foods-it.json`, `portions-it.json` e sui file di produzione.
-- ❓ Non verificato: iPhone; comportamento offline al primo avvio dopo l'aggiornamento.
+- Online (17/11/2026, dopo il push): cache `carbo-beta-v18` attiva, versione alpha.9, ricerca "basmati" e "kinder" corrette, voce Fonti presente, `foods-stime.json` in cache, nessun errore in console.
+- iPhone (17/11/2026, screenshot dell'utente): ✅ Riso basmati crudo (≈ 79,4, stima 77,5–81,3; 80 g ≈ 63,5 g, stima 62–65) · ✅ Kinder Cards ETICHETTA 14,3 g · ✅ Banana 150 g + 120 g = 25,2 g, "porzioni: LARN e tuo elenco" · ✅ Broccoli con nota crudo/cotto · ✅ Pasta al pomodoro senza nota del codice a barre · ✅ totale piatto 173,5 g corretto · ✅ pagina Fonti.
+- ✅ iPhone offline (modalità aereo, screenshot dell'utente): ricerca "pasta" con le voci STIMA funzionante.
+- ❓ Non verificati su iPhone: esclusione dei tortellini, salvataggio del pasto.
 
 ## 10. Roadmap generale
 
@@ -442,7 +452,7 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
   - la parte CREA del catalogo dipende solo dai diritti di riuso (regola e struttura pronte: `cid` `crea:<codice>`);
   - la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. pubblicare alpha.9 (con il consenso dell'utente) e provarla su iPhone: ricerca di voci "Stima"/"Etichetta", porzioni dal file;
+  1. provare alpha.9 su iPhone: ricerca di voci "Stima"/"Etichetta", porzioni dal file;
   2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
   3. decidere su IndexedDB (§4.1), poi Fase 5.
 
@@ -451,4 +461,5 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 17/11/2026: porzioni standard LARN 2014 per 62 voci del DB (pulsanti, mai automatici), verificate nel browser; alpha.6 pubblicata (commit `1d5942a`).
 - 17/11/2026: Fase 4 al 83% — ripristino da backup (anteprima, Unisci, Sostituisci con copia di sicurezza, annullamento), storage persistente, calendario nel Diario, copia pasto, export CSV; verificati nel browser; alpha.7 pubblicata. IndexedDB rinviato per decisione.
 - 17/11/2026: subito dopo la pubblicazione di alpha.7 il browser serviva `index.html` nuovo con `app.js` vecchio (cache HTTP di GitHub Pages, 10 minuti, che il SW non aggirava). Corretto in alpha.8: SW v17 con `no-cache`/`reload`; verificato in locale (installazione, controllo della pagina, copia offline, nessun errore). ❓ Il primo avvio dopo l'aggiornamento passa ancora dal vecchio SW: può servire riaprire l'app una seconda volta.
-- 17/11/2026: l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone. Spiegato CREA. Elenco di 260 alimenti integrato come catalogo di stime separato (`foods-stime.json`, 158 voci + porzioni per 29 voci DB; 8 righe di pasta fresca/ripiena in revisione), verificato nel browser; alpha.9 non pubblicata.
+- 17/11/2026: l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone. Spiegato CREA. Elenco di 260 alimenti integrato come catalogo di stime separato (`foods-stime.json`, 158 voci + porzioni per 29 voci DB; 8 righe di pasta fresca/ripiena in revisione), verificato nel browser; alpha.9 pubblicata (commit `1b4cc56`; commit con il git di GitHub Desktop perché G-Helper bloccava i clic, push dal pulsante di GitHub Desktop) e verificata online, poi su iPhone (anche offline).
+- 17/11/2026: alpha.10 in locale — tendine Preferiti/Recenti/Ricette, nomi leggibili nella ricerca, piatto compatto con dettagli al tocco, avvertenze più piccole, zoom disattivato. Verificata nel browser (375 px, salvataggio invariato, motore AI `5a9885b0`/133,1 g, nessun errore); non pubblicata.

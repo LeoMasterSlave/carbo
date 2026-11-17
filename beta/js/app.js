@@ -122,7 +122,7 @@ function renderCur(){
     const tags=(i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${LVL_TXT[i.conf||"media"]}</span>`:"")+(i.prov?`<span class="tag">provvisorio</span>`:"")+(i.rid?`<span class="tag">ricetta</span>`:"")+(i.cid&&SRC_LABEL[srcOf(i.cid)]?`<span class="tag src">${SRC_LABEL[srcOf(i.cid)]}</span>`:"");
     // porzioni convenzionali: si applicano solo toccandole
     const us=unitsOf(i);
-    const chips=us?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${us.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} ${u}</button>`}).join("")}${portionSourceText(us)?`<span class="chsrc">${portionSourceText(us)}</span>`:""}</div>`:"";
+    const chips=us?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${us.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} ${u}</button>`}).join("")}</div>`:"";
     const fv=!i.rid&&findFav(lib,i);
     const star=i.rid?"":`<button class="favb${fv?" on":""}" data-fav="${k}" type="button" aria-pressed="${fv?"true":"false"}" aria-label="${fv?"Togli dai preferiti":"Aggiungi ai preferiti"} ${esc(i.n)}">${fv?I_STAR_ON:I_STAR}</button>`;
     const askH=ask.length||(i.cand&&i.cand.length)?`<div class="ask ${ask.some(a=>a.b)?"":"ok"}" role="status">${ask.map(a=>esc(a.t)).join(" · ")}${i.cand&&i.cand.length?`<div>${i.cand.map(c=>`<button class="alt" data-alt="${k}" data-n="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`:""}${i.g>0&&ask.length?`<div><button class="alt" data-ok="${k}" type="button">Confermo</button></div>`:""}</div>`:"";
@@ -137,7 +137,12 @@ function renderCur(){
       :`<button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
    <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}">${unitH}
    <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>`;
-    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}${valSub(i,u)}${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
+    // compatto di default (nome, valore per 100); toccando il nome: intervallo, note, porzione, fonte delle porzioni
+    const c0=catInfo(i),rg0=c0&&c0.rng&&c0.rng[1]>c0.rng[0];
+    const head=`<button class="n nmore" type="button" data-more="${k}" aria-expanded="${i.more?"true":"false"}">${esc(i.n)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${tags}`;
+    const brief=`<span class="sub">${rg0?"≈ ":""}${fmt(r1(i.c100))} g/100 ${u}</span>`;
+    const detail=i.more?`<div class="det">${valSub(i,u)}${pzSub}${us&&portionSourceText(us)?`<span class="sub">${portionSourceText(us)}</span>`:""}</div>`:brief;
+    return `<div class="item${i.more?" open":""}"><div class="nm">${head}${detail}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
    <div class="stp">${stepH}${star}</div></div>`};
@@ -242,6 +247,8 @@ document.body.addEventListener("click",e=>{
   const pn=e.target.closest("[data-panel]");if(pn)showPanel(pn.dataset.panel);
   const ad=e.target.closest("[data-add]");if(ad)openSheet(ad.dataset.add);
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
+  // dettagli dell'alimento (solo interfaccia: "more" non viene salvato nel pasto)
+  const mo=e.target.closest("[data-more]");if(mo){const it=cur[+mo.dataset.more];if(it){it.more=!it.more;renderCur()}}
   const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step,it=cur[k];it.g=Math.max(0,Math.round(it.g)+(+s.dataset.d));setWeight(it);renderCur()}
   const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);setWeight(it);renderCur()}
   const ch=e.target.closest("[data-unit]");if(ch){
@@ -279,10 +286,16 @@ const favRow=f=>pickRow("fav",f.id,I_STAR_S,f.n,[qty(f.g,f.u,f.pz),`${fmt(f.c100
 const recRow=(f,k)=>pickRow("rec",k,I_CLOCK,f.n,[qty(f.g,f.u,f.pz),`${fmt(f.c100)} g/100`].filter(Boolean).join(" · "));
 const rcpRow=r=>{const s=recipeStats(r);return pickRow("rcp",r.id,I_BOOK,r.n,`${Math.round(s.servCho)} g a porzione`)};
 const grp=(t,rows)=>rows.length?`<div class="pgrp"><h3>${t}</h3>${rows.join("")}</div>`:"";
+// Tendine del pannello vuoto: chiuse di default, si ricorda quale hai aperto (solo su questo telefono).
+const DROP_KEY="carbo_drops";
+const dropsOpen=()=>{try{return JSON.parse(localStorage.getItem(DROP_KEY))||{}}catch(e){return{}}};
+const drop=(id,t,rows,total)=>rows.length?`<details class="pdrop" data-drop="${id}"${dropsOpen()[id]?" open":""}><summary><span>${t}</span><small>${total}</small></summary>${rows.join("")}</details>`:"";
+$("sug").addEventListener("toggle",e=>{const d=e.target.closest&&e.target.closest("[data-drop]");if(!d)return;const o=dropsOpen();o[d.dataset.drop]=d.open;try{localStorage.setItem(DROP_KEY,JSON.stringify(o))}catch(x){}},true);
 function renderSug(){
   const raw=$("q").value.trim(),q=raw.toLowerCase(),qf=fold(raw),qn=norm(q);
   if(!q){
-    $("sug").innerHTML=grp("Preferiti",lib.favorites.slice(0,6).map(favRow))+grp("Recenti",lib.recents.slice(0,5).map(recRow))+grp("Ricette",lib.recipes.slice(0,4).map(rcpRow));
+    // preferiti e recenti in alto, ricette in fondo
+    $("sug").innerHTML=drop("fav","Preferiti",lib.favorites.slice(0,8).map(favRow),lib.favorites.length)+drop("rec","Recenti",lib.recents.slice(0,8).map(recRow),lib.recents.length)+drop("rcp","Ricette",lib.recipes.slice(0,8).map(rcpRow),lib.recipes.length);
     return;
   }
   const rc=lib.recipes.filter(r=>fold(r.n).includes(qf)).slice(0,4).map(rcpRow);
@@ -293,14 +306,14 @@ function renderSug(){
     .map(([ean,p])=>`<button class="sug" type="button" data-pk="${esc(ean)}"><span>${esc(productLabel(p))}</span><small>${fmt(p.c100)} g/100 ${p.u||"g"}${srcTag(p.src==="off"?"off":"manual")}</small></button>`);
   // DB del motore: stessa ricerca di prima, solo lettura
   const dbAll=DB.filter(f=>f.n.toLowerCase().includes(q)||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn)));
-  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${portionsFor(f.n)?" · porzioni":""}${srcTag("db")}</small></button>`);
+  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${srcTag("db")}</small></button>`);
   // catalogo esterno: dopo il DB; una voce con lo stesso nome e valore simile (±10%) a una del DB non si ripete
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
     .sort((a,b)=>rank(a)-rank(b)).slice(0,6)
-    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?`≈ ${fmt(f.c100)} (${fmt(f.rng[0])}–${fmt(f.rng[1])})`:fmt(f.c100)} g/100 ${f.u}${f.units.length?" · porzioni":""}${srcTag(srcOf(f.cid))}</small></button>`);
+    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?"≈ ":""}${fmt(f.c100)} g/100 ${f.u}${srcTag(srcOf(f.cid))}</small></button>`);
   const foods=[...db,...cat];
-  $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Ricette",rc)+grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
+  $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods)+grp("Ricette",rc):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
 }
 const srcTag=s=>SRC_LABEL[s]?` · <span class="srct">${SRC_LABEL[s]}</span>`:"";
 // Elemento del piatto da una voce del catalogo: peso da inserire o porzione da scegliere (mai applicata da sola).
@@ -857,6 +870,9 @@ $("key").onchange=e=>{try{localStorage.setItem("carbo_key_"+getProv(),e.target.v
 $("ver").textContent=APP_VERSION;
 {const t=getTheme(),r=document.querySelector('input[name=theme][value="'+t+'"]');if(r)r.checked=true;applyTheme(t)}
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+// niente zoom nell'app: Safari iOS ignora user-scalable=no, quindi si blocca il gesto di pinch (il doppio tocco è gestito da touch-action nel CSS)
+["gesturestart","gesturechange"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
 const _l=lsGet();if(_l&&_l.meals)state=_l;
 setType(defaultType());
 showLastBackup();renderUndoRestore();checkStorage(false);
