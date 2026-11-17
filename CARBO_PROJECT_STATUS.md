@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · versione beta `2.0.0-alpha.12`, pubblicata su `/carbo/beta/` il 17/11/2026 (alimento del piatto ridotto dopo la scelta, §5; SW v21; alpha.11 = commit `805750c`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
+Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.14`, pubblicata su `/carbo/beta/` il 18/11/2026 (SW v23, commit `7c34b53`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -52,7 +52,7 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 | Analisi foto tramite motore AI invariato | ✅ (provato con chiamata simulata) |
 | Ricerca unificata (ricette, preferiti, prodotti salvati, DB, catalogo USDA) con etichette di fonte, e alimento personalizzato | ✅ |
 | Catalogo USDA (9 frutti) con porzioni selezionabili a chip | ✅ (browser) |
-| Altro → Fonti dei dati (Carbo, USDA, OFF, CREA "non integrato", inseriti da te) | ✅ (browser) |
+| Altro → Fonti dei dati (Carbo, USDA, OFF, CREA in uso, inseriti da te) | ✅ (browser) |
 | Eliminazione pasto con "Annulla", modifica pasto salvato | ✅ |
 | Preferiti con quantità abituale, ultimi 15 alimenti recenti | ✅ |
 | Ricette (dal piatto, porzioni, CHO per porzione) | ✅ |
@@ -266,7 +266,7 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 7. Porzioni convenzionali = suggerimenti da toccare, mai applicate senza conferma.
 8. Distinti peso lordo, parte edibile e quantità consumata.
 9. Si conservano fonte, id originale e valore originale.
-10. CREA: nessuna estrazione in massa finché i diritti di riuso non sono chiariti.
+10. ~~CREA: nessuna estrazione in massa finché i diritti di riuso non sono chiariti.~~ Superata il 18/11/2026: l'utente ha scelto di importare e pubblicare l'elenco CREA (§9.13).
 
 **✅ Risolto (decisioni 1 e 2):** l'utente ha scelto amido + zuccheri, coerente con la base a peso.
 - Conseguenze note: sui cibi amidacei il valore CREA normalizzato è ≈ 7–9% più basso del valore pubblicato e delle etichette di pasta (pasta 66,3 contro 70,9–71,2 in etichetta), mentre per il riso è in linea con le etichette (75,5 contro 76–78).
@@ -428,6 +428,19 @@ Discrepanze da tenere presenti:
 - ✅ iPhone offline (modalità aereo, screenshot dell'utente): ricerca "pasta" con le voci STIMA funzionante.
 - ❓ Non verificati su iPhone: esclusione dei tortellini, salvataggio del pasto.
 
+### 9.13 Catalogo CREA (18/11/2026) — verificato nel browser e online, pubblicato in alpha.13/14 (non provato su iPhone)
+- Fonte: `database_alimenti.xlsx` fornito dall'utente (832 righe dalle tabelle CREA, agg. dicembre 2019). L'utente ha deciso di importarlo e pubblicarlo assumendosi la questione dei diritti di riuso (sostituisce la regola §9.5.10). Restano da citare CREA e l'URL (fatto nella pagina Fonti).
+- Script `tools/crea/build.mjs` → `beta/data/foods-crea.json` (831 voci, `cid` `crea:<codice>`), report `tools/crea/REPORT.md`. Il DB del motore non è toccato.
+- Regola §9.5.2 applicata: c100 = amido + zuccheri = (pubblicato − zuccheri) / 1,1 + zuccheri; il pubblicato resta in `src.orig`. 230 voci cambiano (es. riso basmati crudo 82,9 → 75,5, come in §9.6).
+- "tr" (tracce) = 0 (21 voci). Escluso lo zucchero (104,5 anche normalizzato: resta la voce del DB). Porzione standard CREA come pulsante (827 voci); 3 porzioni incoerenti con i CHO per porzione del file non importate (patate fritte, una varietà di pere, pomodorini).
+- Ricerca: ordine a parità di rango per nome più corto; fino a 8 voci di catalogo (prima 6).
+- ✅ Browser: 831 voci caricate, ricerca "pane/pere/uova/parmigiano", voce CREA nel piatto con porzione, 375 px senza overflow, pasti salvati invariati, nessun errore. ✅ Online: SW v23, 831 voci, basmati 75,5.
+
+### 9.14 Descrivi il piatto (18/11/2026) — verificato nel browser (AI simulata) e online
+- Nuovo modulo `js/engine/describe.js`: stessa chiave, stessi modelli e stessa cascata delle foto; prompt testuale proprio; risultati passati da `fromAI` (valori del DB quando c'è corrispondenza). `ai.js` invariato (hash del prompt foto `5a9885b0`, totale 133,1 g).
+- Interfaccia: pulsante "Descrivi il piatto" sotto Foto/Codice a barre → campo (es. "kebab medio") + "Stima i carboidrati". Le voci si **aggiungono** al piatto con il tag di confidenza; quantità non indicata → porzione media con "confidenza bassa" e nota. Niente si salva prima di "Salva pasto".
+- ❓ Non provato con una chiave reale né su iPhone.
+
 ## 10. Roadmap generale
 
 Le percentuali sono calcolate così: attività concluse e verificate ÷ attività della fase. "Verificata" significa provata nel browser (Claude Browser) o con un test; la verifica su iPhone è una fase a sé (V).
@@ -439,21 +452,17 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 | 2 Libreria | ✅ preferiti · ✅ recenti · ✅ ricette · ✅ modifica pasti/annulla | Completata | 100% (4/4) |
 | 3 Barcode e promemoria | ✅ scanner · ✅ OFF + prodotti ricordati · ✅ pezzi/porzioni · ✅ avviso in-app · ✅ `.ics` | Completata (browser) | 100% (5/5) |
 | V Validazione iPhone | ⬜ installazione in Home · ⬜ fotocamera/ZXing · ⬜ `.ics` · ⬜ condivisione backup · ⬜ trascinamento pannello | In attesa dell'utente | 0% (0/5) |
-| D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ✅ elenco utente come stime (§9.12) · ⛔ catalogo CREA | In corso (resta solo CREA, bloccato) | 93% (13/14) |
+| D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ✅ elenco utente come stime (§9.12) · ✅ catalogo CREA (§9.13) | Completata (browser) | 100% (14/14) |
 | 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ⬜ IndexedDB (decisione aperta) | In corso | 83% (5/6) |
 | 5 Rilascio | ⬜ rifinitura e accessibilità · ⬜ test finale · ⬜ promozione di `beta/` in produzione | Pianificata | 0% (0/3) |
 
-**Complessivo: 34/44 attività = 77%.**
+**Complessivo: 35/44 attività = 80%.**
 
-- Fase attuale: **D – Database alimenti**, 93% (13/14): resta solo CREA, bloccato. Fase 4 all'83% (IndexedDB in attesa di decisione). V: l'utente riferisce che tutte le funzioni di alpha.8 funzionano su iPhone; ❓ voci di V non ancora spuntate una per una.
-- Bloccato:
-  - ⛔ catalogo CREA, finché non sono chiariti i diritti di riuso (serve contattare CREA-AN);
-  - V dipende dall'utente.
-- Dipendenze:
-  - la parte CREA del catalogo dipende solo dai diritti di riuso (regola e struttura pronte: `cid` `crea:<codice>`);
-  - la Fase 5 dipende da V e dalla Fase 4.
+- Fase attuale: **4 – Dati e Diario**, 83% (IndexedDB in attesa di decisione). Fase D completata nel browser (alpha.14). V: l'utente riferisce che tutte le funzioni di alpha.8 funzionano su iPhone; ❓ voci di V non ancora spuntate una per una.
+- Bloccato: V dipende dall'utente.
+- Dipendenze: la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. provare alpha.9 su iPhone: ricerca di voci "Stima"/"Etichetta", porzioni dal file;
+  1. provare alpha.14 su iPhone: "Descrivi il piatto" con una chiave reale, ricerca di voci CREA;
   2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
   3. decidere su IndexedDB (§4.1), poi Fase 5.
 
@@ -466,3 +475,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 17/11/2026: alpha.10 in locale — tendine Preferiti/Recenti/Ricette, nomi leggibili nella ricerca, piatto compatto con dettagli al tocco, avvertenze più piccole, zoom disattivato. Verificata nel browser (375 px, salvataggio invariato, motore AI `5a9885b0`/133,1 g, nessun errore); pubblicata (commit `56ea08e`) e verificata online: SW v19, versione alpha.10, righe di ricerca compatte, nessun errore.
 - 17/11/2026: alpha.11 in locale — "Altro" diventa "Impostazioni"; nuova pagina Crediti e avvertenze con l'avvertenza AI (tolta dal pannello Aggiungi). Verificata nel browser (375 px, navigazione tra i pannelli, nessun errore); pubblicata (commit `805750c`) e verificata online (SW v20, scheda "Impostazioni", nessun errore). 
 - 17/11/2026: alpha.12 — alimento del piatto ridotto a nome + carboidrati dopo la scelta. Verificata nel browser (porzione → ridotto, riapertura, +/−, campo grammi che non sparisce mentre si scrive, salvataggio senza campi nuovi, motore AI `5a9885b0`/133,1 g, nessun errore); pubblicata.
+- 18/11/2026: alpha.13 — "Descrivi il piatto" (§9.14) e catalogo CREA da `database_alimenti.xlsx` (§9.13, import deciso dall'utente). alpha.14 — valori CREA normalizzati ad amido + zuccheri (regola §9.5.2, dimenticata in alpha.13). Verificate nel browser e online (commit `328199d`, `7c34b53`; SW v23). Fase D completata.
