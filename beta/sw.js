@@ -1,8 +1,8 @@
 ﻿// Rete prima, cache come riserva offline: gli aggiornamenti arrivano subito.
 // Lo scanner ZXing (js/vendor) non è precaricato: entra in cache al primo uso.
-const V="carbo-beta-v14",F=["./","index.html","manifest.webmanifest","icon-180.png","icon-192.png","icon-512.png",
+const V="carbo-beta-v15",F=["./","index.html","manifest.webmanifest","icon-180.png","icon-192.png","icon-512.png",
   "css/app.css","js/app.js","js/engine/ai.js","js/engine/fooddb.js","js/data/backup.js","js/data/library.js",
-  "js/data/products.js","js/data/catalog.js","data/foods-it.json","js/lib/barcode.js","js/features/reminders.js"];
+  "js/data/products.js","js/data/catalog.js","data/foods-it.json","data/portions-it.json","js/lib/barcode.js","js/features/reminders.js"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(F)).then(()=>self.skipWaiting()))});
 // Cancella solo le versioni precedenti di QUESTA app: sullo stesso dominio possono vivere altre app (es. la beta).
 const MINE=x=>x.replace(/\d+$/,"")===V.replace(/\d+$/,"");

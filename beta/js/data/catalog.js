@@ -22,6 +22,22 @@ export function loadCatalog() {
 export const catalogFoods = () => foods;
 export const catByCid = cid => byCid.get(cid) || null;
 
+// Porzioni standard (beta/data/portions-it.json, LARN 2014) per le voci del DB del motore, per nome.
+// Solo suggerimenti mostrati come pulsanti: non cambiano DB, matching o pesi stimati dall'AI.
+const URL_POR = new URL("../../data/portions-it.json", import.meta.url);
+let portions = new Map(), porLoading = null;
+export function loadPortions() {
+  if (!porLoading) porLoading = fetch(URL_POR).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || j.format !== "carbo-portions" || !j.map) throw new Error("porzioni non valide");
+    const src = j.source && j.source.id || "larn";
+    portions = new Map(Object.entries(j.map).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter(validUnit)
+      .map(u => ({ t: u.t, w: u.w, l: u.l === "pezzo" ? "pezzo" : "porzione", src }))]).filter(([, v]) => v.length));
+    return portions;
+  }).catch(() => { porLoading = null; return portions });
+  return porLoading;
+}
+export const portionsFor = name => portions.get(name) || null;
+
 // Provenienza: prefisso dell'identificativo ("usda:171719" → "usda").
 export const SRC_LABEL = { usda: "USDA", crea: "CREA", off: "OFF", db: "Carbo", manual: "Mio" };
 export const srcOf = cid => String(cid || "").split(":")[0];

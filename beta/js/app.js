@@ -5,7 +5,7 @@ import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
 import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
-import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf}from"./data/catalog.js";
+import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor}from"./data/catalog.js";
 
 const $=id=>document.getElementById(id);
 let cur=[];
@@ -85,12 +85,13 @@ function renderCur(){
     const u=i.u||"g",ask=i.ask||[],pr=pairOf(i);
     const tags=(i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${LVL_TXT[i.conf||"media"]}</span>`:"")+(i.prov?`<span class="tag">provvisorio</span>`:"")+(i.rid?`<span class="tag">ricetta</span>`:"")+(i.cid&&SRC_LABEL[srcOf(i.cid)]?`<span class="tag src">${SRC_LABEL[srcOf(i.cid)]}</span>`:"");
     // porzioni convenzionali: si applicano solo toccandole
-    const chips=i.units&&i.units.length?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${i.units.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} g</button>`}).join("")}</div>`:"";
+    const us=unitsOf(i);
+    const chips=us?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${us.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} ${u}</button>`}).join("")}${us[0].src==="larn2014"?`<span class="chsrc">porzioni standard LARN</span>`:""}</div>`:"";
     const fv=!i.rid&&findFav(lib,i);
     const star=i.rid?"":`<button class="favb${fv?" on":""}" data-fav="${k}" type="button" aria-pressed="${fv?"true":"false"}" aria-label="${fv?"Togli dai preferiti":"Aggiungi ai preferiti"} ${esc(i.n)}">${fv?I_STAR_ON:I_STAR}</button>`;
     const askH=ask.length||(i.cand&&i.cand.length)?`<div class="ask ${ask.some(a=>a.b)?"":"ok"}" role="status">${ask.map(a=>esc(a.t)).join(" · ")}${i.cand&&i.cand.length?`<div>${i.cand.map(c=>`<button class="alt" data-alt="${k}" data-n="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`:""}${i.g>0&&ask.length?`<div><button class="alt" data-ok="${k}" type="button">Confermo</button></div>`:""}</div>`:"";
     const pz=i.pz&&i.pz.w>0?i.pz:null,byPz=pz&&!i.pzG;
-    const pzSub=pz?`<span class="sub">${esc(pz.t||"1 "+pz.l)} = ${fmt(pz.w)} g (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} g in tutto`:""}</span>`:"";
+    const pzSub=pz?`<span class="sub">${esc(pz.t||"1 "+pz.l)} = ${fmt(pz.w)} ${u} (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} ${u} in tutto`:""}</span>`:"";
     const unitH=pz?`<button class="gu pzu" data-pzu="${k}" type="button" aria-label="${byPz?"Inserisci in grammi":"Inserisci a "+pzPlural(pz.l,2)}">${byPz?(pz.l==="porzione"?"porz.":"pz"):u}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg></button>`:`<span class="gu">${u}</span>`;
     const stepH=byPz
       ?`<button data-pstep="${k}" data-d="-1" type="button" aria-label="Un ${pz.l} in meno di ${esc(i.n)}">${I_MIN}</button>
@@ -208,7 +209,7 @@ document.body.addEventListener("click",e=>{
   const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);setWeight(it);renderCur()}
   const ch=e.target.closest("[data-unit]");if(ch){
     // tocco esplicito su una porzione: 1 porzione, poi si conta a pezzi; resta modificabile a mano
-    const it=cur[+ch.dataset.unit],x=it&&it.units&&it.units[+ch.dataset.ui];
+    const it=cur[+ch.dataset.unit],us=it&&unitsOf(it),x=us&&us[+ch.dataset.ui];
     if(x){it.pz=cleanPz({w:x.w,l:x.l,t:x.t});it.pzG=false;it.g=it.pz.w;setWeight(it);renderCur()}
     return;
   }
@@ -229,7 +230,10 @@ $("items").addEventListener("input",e=>{
 $("items").addEventListener("change",e=>{
   if(e.target.dataset.g!=null||e.target.dataset.pn!=null){renderCur();return}
   const k=e.target.dataset.raw;if(k==null)return;
-  swapState(cur[k]);renderCur();
+  // crudo/cotto: una porzione standard dello stato precedente non vale più per il nuovo
+  const it=cur[k],had=unitsOf(it);swapState(it);
+  if(it.pz&&had&&had.some(x=>x.t===it.pz.t&&x.w===it.pz.w)){delete it.pz;it.pzG=false}
+  renderCur();
 });
 // ---- ricerca unificata: ricette, preferiti, recenti, database
 const qty=(g,u,pz)=>{if(!(g>0))return"";const c=cleanPz(pz);if(c){const n=r1(g/c.w);if(Math.abs(n-Math.round(n))<.05)return `${fmt(n)} ${pzPlural(c.l,n)}`}return `${fmt(g)} ${u||"g"}`};
@@ -252,7 +256,7 @@ function renderSug(){
     .map(([ean,p])=>`<button class="sug" type="button" data-pk="${esc(ean)}"><span>${esc(productLabel(p))}</span><small>${fmt(p.c100)} g/100 ${p.u||"g"}${srcTag(p.src==="off"?"off":"manual")}</small></button>`);
   // DB del motore: stessa ricerca di prima, solo lettura
   const dbAll=DB.filter(f=>f.n.toLowerCase().includes(q)||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn)));
-  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${srcTag("db")}</small></button>`);
+  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${portionsFor(f.n)?" · porzioni":""}${srcTag("db")}</small></button>`);
   // catalogo esterno: dopo il DB; una voce con lo stesso nome e valore simile (±10%) a una del DB non si ripete
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
@@ -269,6 +273,14 @@ function itemFromCat(f){
 }
 // Porzioni del catalogo per uno snapshot salvato, solo se il valore nutrizionale coincide ancora.
 const unitsFor=s=>{const c=s.cid&&catByCid(s.cid);return c&&c.c100===s.c100?c.units:null};
+// Porzioni da mostrare: catalogo (USDA) oppure porzioni standard LARN della voce DB. Mai per le ricette.
+function unitsOf(i){
+  if(i.units&&i.units.length)return i.units;
+  if(i.rid||!i.db)return null;
+  const d=dbByName(i.db),p=d&&d.c===i.c100&&(d.u||"g")===(i.u||"g")&&portionsFor(d.n);
+  return p&&p.length?p:null;
+}
+const askPortion=i=>{if(unitsOf(i)&&!(i.g>0))i.ask=(i.ask||[]).map(a=>a.k==="weight"?{...a,t:"Scegli una porzione o inserisci il peso"}:a);return i};
 $("q").oninput=renderSug;
 // Elemento del piatto da uno snapshot di alimento (preferito o recente), con la quantità abituale.
 function itemFromFood(f,g){
@@ -288,7 +300,7 @@ function addToPlate(i,label){
 }
 $("sug").onclick=e=>{
   const s=e.target.closest("[data-f]");
-  if(s){const f=DB[+s.dataset.f];cur.push(fromDB(f));$("q").value="";renderSug();renderCur();return}
+  if(s){const f=DB[+s.dataset.f];cur.push(askPortion(fromDB(f)));$("q").value="";renderSug();renderCur();return}
   const c=e.target.closest("[data-c]");
   if(c){const f=catByCid(c.dataset.c);if(f){cur.push(itemFromCat(f));$("q").value="";renderSug();renderCur()}return}
   const pk=e.target.closest("[data-pk]");
@@ -740,4 +752,5 @@ showLastBackup();
 renderRem();
 render();renderCur();checkKey();renderLibPanels();
 // catalogo esterno in background: la ricerca lo usa appena è pronto
+loadPortions().then(()=>{if(sheetOpen)renderSug();if(cur.length)renderCur()});
 loadCatalog().then(()=>{if(sheetOpen)renderSug();if(cur.some(i=>i.cid&&!i.units)){cur.forEach(i=>{if(i.cid&&!i.units){const u=unitsFor(i);if(u)i.units=u}});renderCur()}});

@@ -162,6 +162,7 @@ button.row.danger{color:var(--danger)}
 .chip{min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:999px;font:500 13px var(--sans);color:var(--ink);background:none;font-variant-numeric:tabular-nums;transition:background .16s var(--ease),border-color .16s var(--ease)}
 .chip:active{transform:scale(.97)}
 .chip[aria-pressed=true]{border-color:var(--acc);color:var(--acc);background:var(--fill)}
+.chsrc{flex-basis:100%;font:12px var(--sans);color:var(--mut)}
 /* pagina Fonti dei dati */
 .srcl{margin:0;padding:0;list-style:none;display:grid;gap:var(--s3)}
 .srcl li{padding:var(--s3);border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
