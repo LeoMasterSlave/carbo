@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (Fase 4: ripristino, storage, calendario, copia pasto, CSV, §4.1; roadmap §10) · versione beta `2.0.0-alpha.7`, pubblicata su `/carbo/beta/` il 17/11/2026 (commit successivo a `1d5942a`)
+Ultimo aggiornamento: 17/11/2026 (Fase 4: ripristino, storage, calendario, copia pasto, CSV, §4.1; roadmap §10) · versione beta `2.0.0-alpha.8`, pubblicata su `/carbo/beta/` il 17/11/2026 (alpha.7 = commit `4f2a9e6`; alpha.8 = correzione del service worker)
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -32,7 +32,7 @@ Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su i
 | `beta/js/data/catalog.js` | | caricamento del catalogo esterno (`loadCatalog`, `catByCid`, etichette di fonte). Non importa `fooddb.js` |
 | `beta/data/foods-it.json` | | catalogo alimenti generato (oggi 9 voci USDA, 7,5 KB). Non modificare a mano: rigenerare con `tools/usda/build.mjs` |
 | `beta/data/portions-it.json` | | porzioni standard LARN 2014 per 62 voci del DB del motore, per nome (§9.11). Caricate da `catalog.js` (`loadPortions`, `portionsFor`) |
-| `beta/sw.js` | | SW beta, cache `carbo-beta-v16`, network-first; precarica anche catalogo, porzioni, `catalog.js`, `restore.js`, `csv.js` |
+| `beta/sw.js` | | SW beta, cache `carbo-beta-v17`, network-first con `cache:"no-cache"` (e precarica con `cache:"reload"`): salta la cache HTTP di Pages (`max-age=600`), così dopo un rilascio non si mescolano file vecchi e nuovi. Precarica anche catalogo, porzioni, `catalog.js`, `restore.js`, `csv.js` |
 | `tools/usda/` | (fuori dall'app) | `build.mjs` (find/build), `selection.json` (selezione curata + esclusi con motivo) → genera `beta/data/foods-it.json` |
 | `CARBO_PROJECT_STATUS.md` | | questo report |
 
@@ -426,3 +426,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 16/11/2026: Fasi 0–3; beta pubblicata in `/carbo/beta/`; pezzi/porzioni; report creato; audit del DB alimenti; fattibilità USDA (script + 13 candidati + confronti); regola CREA decisa: amido + zuccheri; catalogo USDA (9 voci) integrato in ricerca, chip porzioni, pagina Fonti, verificato nel browser; alpha.5 pubblicata (commit `c83e149`).
 - 17/11/2026: porzioni standard LARN 2014 per 62 voci del DB (pulsanti, mai automatici), verificate nel browser; alpha.6 pubblicata (commit `1d5942a`).
 - 17/11/2026: Fase 4 al 83% — ripristino da backup (anteprima, Unisci, Sostituisci con copia di sicurezza, annullamento), storage persistente, calendario nel Diario, copia pasto, export CSV; verificati nel browser; alpha.7 pubblicata. IndexedDB rinviato per decisione.
+- 17/11/2026: subito dopo la pubblicazione di alpha.7 il browser serviva `index.html` nuovo con `app.js` vecchio (cache HTTP di GitHub Pages, 10 minuti, che il SW non aggirava). Corretto in alpha.8: SW v17 con `no-cache`/`reload`; verificato in locale (installazione, controllo della pagina, copia offline, nessun errore). ❓ Il primo avvio dopo l'aggiornamento passa ancora dal vecchio SW: può servire riaprire l'app una seconda volta.
