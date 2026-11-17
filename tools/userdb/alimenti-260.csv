@@ -1,0 +1,261 @@
+﻿categoria,alimento,quantita_porzione,unita,carboidrati_g_stimati,fonte_o_note,tipo_fonte,url_fonte_generale,stato_verifica
+Cereali,Pane comune,50.0,g,24-27,CREA: porzione standard 50 g; CHO stimati,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Pane integrale,50.0,g,20-24,Stima media; marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Pancarrè,50.0,g (2 fette),23-26,Etichetta della marca preferibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Cracker,30.0,g,20-22,CREA: sostituti del pane 30 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Grissini,30.0,g,20-22,CREA: sostituti del pane 30 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Fette biscottate,30.0,g (3-4),21-23,CREA: sostituti del pane 30 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Pasta secca,80.0,g crudi,56-60,CREA: 80 g; carboidrati indicativi,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Riso,80.0,g crudi,62-65,CREA: 80 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Pasta fresca all'uovo,120.0,g crudi,32-38,CREA: 120 g; ricetta variabile,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Cous cous,80.0,g secco,58-61,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Farro,80.0,g crudo,48-55,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Orzo perlato,80.0,g crudo,55-60,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Polenta,80.0,g farina secca,58-61,Peso prima della cottura,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Gnocchi di patate,200.0,g,55-65,Prodotto/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Cereali,Patate lesse,200.0,g cotte,32-36,CREA: porzione standard 200 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Pizza margherita,300.0,g (1 pizza),85-100,"Porzione commerciale indicativa, non standard CREA",Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Cereali,Focaccia,100.0,g,45-55,Ricetta e idratazione molto variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Corn flakes,30.0,g,24-26,CREA: cereali colazione 30 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Colazione,Muesli,30.0,g,18-22,Miscela e zuccheri variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Biscotti secchi,30.0,g,19-23,CREA: dolci da forno 30 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Colazione,Biscotti frollini,30.0,g,19-22,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Gocciole Pavesi,30.0,g,19.7,"Etichetta: circa 65,7 g/100 g; ricontrollare pack",Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Croissant vuoto,60.0,g (1 medio),29-36,"Prodotto da bar, peso variabile",Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Croissant crema nocciola,75.0,g (1 medio),38-48,Stima: ripieno e peso variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione,Kinder Brioss,27.0,g (1 pezzo),12.2,Etichetta ufficiale Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione,Kinder Bueno,21.5,g (1 pezzo),10.6,Etichetta ufficiale Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione,Nutella,15.0,g,8.6,Etichetta ufficiale Ferrero,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione,Nutella,30.0,g,17.3,Etichetta ufficiale Ferrero,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione,Miele,20.0,g,16-17,CREA: porzione dolcificanti 20 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Colazione,Marmellata,20.0,g,10-13,CREA: porzione 20 g; marca variabile,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Latticini,Latte vaccino,125.0,ml,6-6.5,CREA: porzione 125 ml,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Latticini,Latte vaccino,200.0,ml,9-10,Senza zucchero aggiunto,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Yogurt bianco naturale,125.0,g,5-7,CREA: vasetto 125 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Latticini,Yogurt alla frutta,125.0,g,15-20,Marca/zuccheri variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Yogurt greco bianco,170.0,g,5-7,Non zuccherato; marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Mela,150.0,g edibili,19-22,CREA: frutto medio 150 g,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Frutta,Banana,120.0,g edibili,25-28,Peso senza buccia,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Pera,150.0,g edibili,17-22,Peso senza torsolo,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Arancia,150.0,g edibili,14-17,Peso senza buccia,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Uva,150.0,g,25-28,Porzione edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Fragole,150.0,g,8-12,Porzione edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Kiwi,100.0,g edibili,10-13,Peso senza buccia,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Anguria,200.0,g edibili,14-16,Peso senza buccia,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Dolci/snack,Kinder Cards,25.6,g (1 pezzo),14.3,Etichetta ufficiale Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Dolci/snack,Kinder Choco Fresh,20.5,g (1 pezzo),8.2,Etichetta ufficiale Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Dolci/snack,Kinder Maxi King,35.0,g (1 pezzo),13.4,Etichetta ufficiale Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Dolci/snack,Cioccolato al latte,20.0,g,10-12,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Dolci/snack,Caramelle gommose,20.0,g,14-16,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Dolci/snack,Caramella dura,5.0,g (1 pezzo),4-5,Dimensione/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Dolci/snack,Gelato,100.0,g,20-30,CREA: porzione standard dolci 100 g; gusto variabile,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Bevande,Succo d'arancia,200.0,ml,18-22,Senza zuccheri aggiunti; etichetta preferibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Cola zuccherata,330.0,ml,35-37,"Versione standard, non zero",Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Tè freddo zuccherato,330.0,ml,22-28,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Caffellatte,200.0,ml latte,9-10,Senza zucchero aggiunto,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta al pomodoro,1.0,porzione: 80 g pasta secca,60-65,Peso pasta a crudo; sugo semplice,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta al pesto,1.0,porzione: 80 g pasta secca,58-63,Pesto escluso o contributo minimo,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta alla carbonara,1.0,porzione: 80 g pasta secca,58-63,Quasi tutti dalla pasta,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta alla Carlofortina,1.0,porzione: 100 g pasta secca,73-80,Stima; quantità di pasta/condimento variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Lasagne al ragù,250.0,g,35-50,Ricetta e strati variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Ravioli ricotta e spinaci,150.0,g,35-45,Ripieno e pasta variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Minestra con pastina,1.0,porzione: 50 g pastina secca,35-38,Carne/puntine incidono poco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Risotto,1.0,porzione: 80 g riso secco,62-68,Condimenti variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Insalata di riso,250.0,g,45-65,Dipende soprattutto dalla quota di riso,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Panino prosciutto e formaggio,120.0,g,45-60,Pane prevalente; formato variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Toast prosciutto e sottiletta,2.0,toast (4 fette pancarrè),43-50,Dipende da pane e quantità di formaggio,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Focaccia prosciutto e mozzarella,150.0,g,70-85,Focaccia e peso ripieno variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Hamburger con pane,180.0,g,40-55,Pane/salse variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Cotoletta impanata,120.0,g,15-25,Panatura e prodotto variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Patatine fritte,150.0,g cotte,45-55,Porzione fast food indicativa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi/contorni,Ceci cotti,150.0,g scolati,27-33,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi/contorni,Lenticchie cotte,150.0,g scolate,22-26,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi/contorni,Fagioli cotti,150.0,g scolati,18-25,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi/contorni,Piselli cotti,150.0,g,15-20,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi/contorni,Mais,100.0,g scolati,16-20,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse,Ketchup,20.0,g,4-6,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse,Maionese,15.0,g,0-1,Versione standard,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse,Pesto,30.0,g,2-4,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Pane ai cereali,50.0,g,21-25,Stima media; porzione pane 50 g da Linee guida CREA/Ministero,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Pane e prodotti da forno,Pane di segale,50.0,g,20-24,Stima media; porzione pane 50 g da Linee guida CREA/Ministero,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Pane e prodotti da forno,Pane carasau,30.0,g,21-23,Stima media; peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Pane guttiau,30.0,g,20-23,Stima media; condimento/olio non cambia molto i CHO,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Pane arabo,70.0,g,35-40,Stima media da composizione,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Piadina classica,100.0,g,48-55,Marca e ricetta variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Piadina integrale,100.0,g,42-50,Marca e ricetta variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Bagel,90.0,g,45-50,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Panino all'olio,60.0,g,30-34,Porzione pane 50 g come riferimento; formato commerciale,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Panino al latte,50.0,g,24-28,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Tramezzino pane bianco,50.0,g,24-26,Solo pane; ripieno da aggiungere,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Bruschetta di pane,50.0,g,24-27,Solo pane,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Taralli,30.0,g,19-22,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Pane carasau con pomodoro,60.0,g pane,42-46,Il riferimento riguarda il pane; condimento escluso,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Cornetto salato,80.0,g,32-38,Prodotto da forno variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Pane e prodotti da forno,Sfoglia salata,100.0,g,25-35,Ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Maccheroni,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Fusilli,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Rigatoni,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Penne,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Spaghetti,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Linguine,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Farfalle,80.0,g crudi,56-60,Porzione pasta secca 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Pasta integrale,80.0,g crudi,50-56,Porzione 80 g; marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Pasta senza glutine mais/riso,80.0,g crudi,58-64,Marca e miscela variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Tagliatelle all'uovo,120.0,g fresche,34-40,Porzione pasta fresca all'uovo 120 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Tortellini freschi,150.0,g,38-48,Ripieno e marca variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Cappelletti freschi,150.0,g,35-45,Ripieno e ricetta variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Riso basmati,80.0,g crudi,62-65,Porzione riso 80 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+"Pasta, riso e cereali",Riso integrale,80.0,g crudi,58-62,Porzione 80 g; tipo variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Riso venere,80.0,g crudi,56-62,Porzione 80 g; tipo variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Quinoa,80.0,g secca,48-53,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Bulgur,80.0,g secco,55-60,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Avena in fiocchi,40.0,g,23-27,Porzione pratica,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Farina di mais,50.0,g,36-39,Peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+"Pasta, riso e cereali",Pane grattugiato,20.0,g,13-15,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Cornetto integrale,60.0,g,27-34,Prodotto da bar variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Brioche al cioccolato,80.0,g,38-48,Peso e ripieno variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Brioche alla marmellata,80.0,g,40-50,Peso e ripieno variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Brioche vuota,70.0,g,32-40,Prodotto da bar variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Ciambella fritta,80.0,g,35-45,Ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Bombolone alla crema,100.0,g,40-52,Peso e farcitura variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Muffin,80.0,g,32-42,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Plumcake,50.0,g,24-30,Fetta indicativa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Torta margherita,80.0,g,35-42,Fetta indicativa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Crostata alla marmellata,80.0,g,38-48,Fetta indicativa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Tiramisù,120.0,g,30-40,Ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Panna cotta con coulis,120.0,g,20-30,Dipende dalla salsa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Budino al cioccolato,125.0,g,18-25,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Crema spalmabile alla nocciola generica,15.0,g,8-9,Valore medio; usare etichetta marca,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Nutella Biscuits,1.0,biscotto (circa 13 g),7-8,Stima per pezzo; verificare etichetta attuale,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Kinder Delice,1.0,pezzo (39 g circa),18-21,Valore indicativo; verificare etichetta,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Colazione e dolci,Kinder Fetta al Latte,1.0,pezzo (28 g),9.5,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Schoko-Bons,1.0,pezzo (5.8 g),3.0,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Maxi,1.0,barretta (21 g),11-12,Etichetta Ferrero/Kinder; formato da verificare,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Cards,1.0,pezzo (25.6 g),14.3,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Choco Fresh,1.0,pezzo (20.5 g),8.2,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Maxi King,1.0,pezzo (35 g),13.4,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Kinder Cioccolato,1.0,barretta (12.5 g),6.7,Etichetta Ferrero/Kinder,Produttore / etichetta,https://www.ferrero.com/it/it/i-nostri-prodotti/kinder,Verificare che formato e confezione coincidano con il prodotto venduto
+Colazione e dolci,Nutella B-ready,1.0,pezzo (22 g circa),12-14,Stima; controllare confezione,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Mandarini,2.0,piccoli (150 g edibili),17-20,Porzione frutta 150 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Frutta,Clementine,2.0,piccole (150 g edibili),16-19,Porzione frutta 150 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Albicocche,3.0,medie (150 g edibili),12-15,Porzione frutta 150 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Prugne,2.0,medie (150 g edibili),14-17,Porzione frutta 150 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Ananas,150.0,g,18-21,Porzione frutta 150 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Melone,200.0,g edibili,14-17,Peso edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Mango,150.0,g edibili,21-24,Peso edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Ciliegie,150.0,g edibili,18-22,Peso edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Mirtilli,100.0,g,12-15,Porzione pratica,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Lamponi,125.0,g,6-8,Porzione pratica,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Cachi,150.0,g edibili,25-30,Peso edibile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Fichi freschi,100.0,g,16-19,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Datteri secchi,30.0,g,21-23,Frutta disidratata,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Uvetta,30.0,g,22-24,Frutta disidratata,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Frutta,Frutta secca mista,30.0,g,3-7,Non zuccherata; mix variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Carote,200.0,g,14-16,Porzione ortaggi 250 g da Linee guida; CHO stimati,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Verdure e ortaggi,Pomodori,200.0,g,6-8,Porzione ortaggi 250 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Zucchine,200.0,g,4-6,Porzione ortaggi 250 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Melanzane,200.0,g,5-8,Porzione ortaggi 250 g,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Peperoni,150.0,g,8-11,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Finocchi,200.0,g,5-7,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Broccoli,200.0,g,6-10,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Cavolfiore,200.0,g,5-8,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Spinaci,200.0,g,2-4,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Insalata verde,80.0,g,1-2,Porzione insalata 50 g da Linee guida,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Verdure e ortaggi,Cipolla,50.0,g,4-5,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Funghi,150.0,g,3-5,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Zucca,200.0,g,10-14,Varietà variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Asparagi,200.0,g,4-6,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Fagiolini,150.0,g,7-10,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Cetrioli,150.0,g,3-5,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Verdure e ortaggi,Carciofi,150.0,g,8-11,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi,Ceci secchi,50.0,g secchi,27-31,Porzione legumi secchi 30 g da Linee guida; 50 g come porzione pratica,Documento istituzionale,https://www.salute.gov.it/imgs/C_17_pubblicazioni_652_allegato.pdf,Porzione istituzionale; carboidrati da tabella composizione/valori medi
+Legumi,Lenticchie secche,50.0,g secche,28-32,Peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi,Fagioli secchi,50.0,g secchi,28-32,Peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi,Piselli secchi,50.0,g secchi,28-33,Peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi,Fave fresche,150.0,g,10-15,Parte edibile; variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi,Edamame,100.0,g,8-12,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Latte scremato,200.0,ml,9-10,Lattosio; senza zuccheri aggiunti,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Latte senza lattosio,200.0,ml,9-10,Carboidrati simili al latte normale,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Kefir bianco,200.0,ml,8-10,Naturale non zuccherato,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Yogurt da bere alla frutta,200.0,ml,20-28,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Ricotta vaccina,100.0,g,3-4,Valore medio,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Mozzarella,100.0,g,1-2,Valore medio,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Stracchino,100.0,g,1-3,Valore medio,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Parmigiano,30.0,g,0-1,Stagionato,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Sottiletta,1.0,fetta (20 g),1-2,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Latticini,Fiocchi di latte,100.0,g,2-4,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Latte macchiato,150.0,ml latte,7-8,Senza zucchero,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Cappuccino,125.0,ml latte,6-7,Senza zucchero,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Cioccolata calda al bar,200.0,ml,25-40,Preparato e latte variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,bevanda di soia non zuccherata,200.0,ml,1-3,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Bevanda di riso,200.0,ml,18-24,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Bevanda di mandorla non zuccherata,200.0,ml,0-2,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Limonata zuccherata,330.0,ml,30-36,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Energy drink zuccherato,250.0,ml,27-30,Versione standard,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Birra,330.0,ml,10-14,Tipo e gradazione variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Bevande,Vino,150.0,ml,0-4,Secco; residuo zuccherino variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta al tonno,1.0,piatto (80 g pasta secca),58-63,Carboidrati quasi tutti dalla pasta,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta ai funghi,1.0,piatto (80 g pasta secca),58-64,Panna/ingredienti possono aumentare,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta alla Norma,1.0,piatto (80 g pasta secca),60-67,Melanzane e salsa incidono poco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta alle vongole,1.0,piatto (80 g pasta secca),58-63,Pasta prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta quattro formaggi,1.0,piatto (80 g pasta secca),58-65,Pasta prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta al ragù,1.0,piatto (80 g pasta secca),60-66,Ragù variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta fredda,1.0,piatto (80 g pasta secca),60-70,Ingredienti e quantità variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Gnocchi al pomodoro,250.0,g,60-75,Gnocchi e salsa variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Riso in bianco cotto,180.0,g cotti,48-52,Porzione cotta; non confondere con peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Polenta cotta,250.0,g,35-45,Densità e idratazione variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Minestrone,300.0,g,15-25,Senza pasta; ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Zuppa di legumi,300.0,g,25-40,Proporzione legumi e cereali variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Cous cous con verdure,250.0,g cotto,45-60,Peso cotto; quota cous cous variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Poke con riso,1.0,bowl (circa 350 g),65-90,Riso e topping variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Sushi misto,8.0,pezzi,45-60,Tipologia e dimensione dei roll variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Risotto alla milanese,1.0,piatto (80 g riso secco),62-68,Riso prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Parmigiana di melanzane,250.0,g,15-25,Panatura/sugo variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Insalata caprese,250.0,g,5-8,Pomodoro e latticini,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Insalata con mais,250.0,g,12-20,Quantità mais variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Piadina prosciutto e formaggio,1.0,piadina (100 g base),50-60,Valore dipende dalla piadina,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Tramezzino tonno e maionese,1.0,tramezzino (100 g),35-45,Pane prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Club sandwich,1.0,porzione (180 g),40-55,Pane e salse variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Hot dog,1.0,panino (120 g),30-40,Pane prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Kebab in piadina,1.0,porzione,50-70,Pane/piadina e salse variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Calzone al pomodoro e mozzarella,250.0,g,65-85,Impasto e dimensione variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Arancino al ragù,1.0,pezzo (180 g),45-55,Riso e panatura variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Supplì al telefono,1.0,pezzo (100 g),25-32,Riso e panatura,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Panzerotto fritto,1.0,pezzo (150 g),40-55,Impasto e ripieno variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Culurgiones,6.0,pezzi (circa 180 g),45-55,Pasta ripiena; dimensione variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Malloreddus al sugo,1.0,piatto (80 g secchi),58-65,Pasta secca; sugo escluso/minimo,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Seadas,1.0,pezzo (100 g),35-45,Pasta e miele; ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Fregola al pomodoro,1.0,piatto (80 g secca),55-62,Peso secco,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pane frattau,1.0,porzione (100 g pane carasau),70-78,Pane prevalente; ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Insalata di patate,200.0,g,30-38,Patate prevalenti,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Purè di patate,200.0,g,30-40,Latte e ricetta variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Patate al forno,200.0,g,32-40,Peso cotto,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Polpette con pane,150.0,g,10-18,Pane/ingredienti variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pesce impanato,120.0,g,12-20,Panatura e marca variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Bastoncini di pesce,100.0,g,15-20,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Spinacina impanata,100.0,g,15-22,Usare etichetta della confezione,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pizza marinara,300.0,g,80-95,Dimensione e impasto variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pizza quattro formaggi,300.0,g,85-105,Impasto prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pizza prosciutto e funghi,300.0,g,85-105,Impasto prevalente,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Focaccia farcita,150.0,g,65-85,Impasto e farcitura variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pasta al forno,250.0,g,45-65,"Pasta, besciamella e ragù variabili",Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Cannelloni ricotta e spinaci,250.0,g,35-50,Pasta e ripieno variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Moussaka,250.0,g,20-35,Patate/besciamella variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Pollo con patate,300.0,g,30-40,Dipende dalla quantità di patate,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Piatti composti,Frittata di patate,200.0,g,20-30,Quota patate variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Patate dolci,200.0,g cotte,35-42,Varietà e cottura variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Barbabietole cotte,150.0,g,12-16,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Cavolo cappuccio,150.0,g,7-10,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Melanzane grigliate,200.0,g,5-8,Senza panatura,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Pomodorini,150.0,g,5-7,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Olive,30.0,g,1-2,Senza ripieno,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Hummus,50.0,g,4-7,Ricetta e ceci variabili,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Fagioli cannellini cotti,150.0,g scolati,18-23,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Legumi e contorni,Fagioli borlotti cotti,150.0,g scolati,20-25,Stima media,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Salsa barbecue,20.0,g,5-8,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Senape,15.0,g,0-2,Marca variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Salsa yogurt,30.0,g,1-3,Ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Salsa agrodolce,30.0,g,10-16,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Salsa di soia,15.0,ml,0-2,Tipo standard; dolce diversa,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Besciamella,50.0,g,3-5,Ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria
+Salse e condimenti,Pesto rosso,30.0,g,3-6,Marca/ricetta variabile,Stima indicativa / da verificare,,Valore orientativo: sostituire con etichetta o fonte primaria

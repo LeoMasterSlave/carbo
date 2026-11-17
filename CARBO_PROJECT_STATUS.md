@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (Fase 4: ripristino, storage, calendario, copia pasto, CSV, §4.1; roadmap §10) · versione beta `2.0.0-alpha.8`, pubblicata su `/carbo/beta/` il 17/11/2026 (alpha.7 = commit `4f2a9e6`; alpha.8 = correzione del service worker)
+Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · versione beta `2.0.0-alpha.9` **in locale, non pubblicata** · online: `2.0.0-alpha.8` (commit `ae177f7`)
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -29,10 +29,12 @@ Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su i
 | `beta/js/lib/barcode.js` | | scanner: `BarcodeDetector` → fallback ZXing, controllo GS1 |
 | `beta/js/features/reminders.js` | | promemoria in-app + generazione `.ics` |
 | `beta/js/vendor/` | | ZXing minificato + README con licenza e hash SHA-384 |
-| `beta/js/data/catalog.js` | | caricamento del catalogo esterno (`loadCatalog`, `catByCid`, etichette di fonte). Non importa `fooddb.js` |
+| `beta/js/data/catalog.js` | | caricamento del catalogo esterno (`loadCatalog` legge `foods-it.json` + `foods-stime.json`, `catByCid`, `portionsFor` = LARN + porzioni del file, `portionSourceText`, etichette di fonte). Non importa `fooddb.js` |
+| `beta/data/foods-stime.json` | | catalogo dall'elenco dell'utente: 158 voci (`est:` stima, `lab:` etichetta) con `c100` centrale, `rng` intervallo, `r` per porzione; `dbPortions` = porzioni in più per 29 voci del DB (§9.12). Non modificare a mano: rigenerare con `tools/userdb/build.mjs` |
+| `tools/userdb/` | (fuori dall'app) | `alimenti-260.csv` (copia del file dell'utente), `build.mjs` (regole di conversione), `REPORT.md` (esclusi, doppioni, revisione) |
 | `beta/data/foods-it.json` | | catalogo alimenti generato (oggi 9 voci USDA, 7,5 KB). Non modificare a mano: rigenerare con `tools/usda/build.mjs` |
 | `beta/data/portions-it.json` | | porzioni standard LARN 2014 per 62 voci del DB del motore, per nome (§9.11). Caricate da `catalog.js` (`loadPortions`, `portionsFor`) |
-| `beta/sw.js` | | SW beta, cache `carbo-beta-v17`, network-first con `cache:"no-cache"` (e precarica con `cache:"reload"`): salta la cache HTTP di Pages (`max-age=600`), così dopo un rilascio non si mescolano file vecchi e nuovi. Precarica anche catalogo, porzioni, `catalog.js`, `restore.js`, `csv.js` |
+| `beta/sw.js` | | SW beta, cache `carbo-beta-v18` (precarica anche `foods-stime.json`), network-first con `cache:"no-cache"` (e precarica con `cache:"reload"`): salta la cache HTTP di Pages (`max-age=600`), così dopo un rilascio non si mescolano file vecchi e nuovi. Precarica anche catalogo, porzioni, `catalog.js`, `restore.js`, `csv.js` |
 | `tools/usda/` | (fuori dall'app) | `build.mjs` (find/build), `selection.json` (selezione curata + esclusi con motivo) → genera `beta/data/foods-it.json` |
 | `CARBO_PROJECT_STATUS.md` | | questo report |
 
@@ -394,6 +396,27 @@ Discrepanze da tenere presenti:
   - `git diff` su `beta/js/engine` vuoto.
 - Altri file: `catalog.js` (caricamento), `app.js` (`unitsOf`, `askPortion`, chip con unità, crudo/cotto), `index.html` (voce LARN in Fonti), `app.css` (`.chsrc`), `sw.js` v15, `backup.js` alpha.6.
 
+### 9.12 Elenco alimenti dell'utente (17/11/2026) — verificato nel browser, non pubblicato
+- Fonte: `database_carbo_260_alimenti.csv` fornito dall'utente (260 righe: 214 stime "da verificare", 32 con porzione da documento istituzionale e CHO stimati, 14 da etichetta del produttore). Copia in `tools/userdb/alimenti-260.csv`.
+- Regole dell'utente, come sono state applicate da `tools/userdb/build.mjs`:
+  - **valore centrale + intervallo:** `c100` = media dei punti centrali per 100 g, usata nei calcoli; `rng` (per 100 g) e `r` (g di CHO per porzione) sono mostrati con "≈" e "stima lo–hi";
+  - **crudo/cotto:** lo stato indicato dal file va nel nome (es. "Riso basmati crudo", "Quinoa secca", "Patate dolci cotte"); lo script si ferma se manca. I piatti pesati su un ingrediente lo dicono: "Pasta al pomodoro (peso della pasta a crudo)". 14 verdure senza stato nel file mostrano "l'elenco non indica se crudo o cotto";
+  - **doppioni:** 3 righe identiche (Kinder Cards, Choco Fresh, Maxi King) unite; 10 frutti già USDA esclusi; le voci uguali al DB del motore non diventano nuove voci: aggiungono solo una porzione con un peso diverso (es. Banana 120 g, Latte 200 ml, Nutella 15/30 g, Patate lesse 200 g), mentre i carboidrati restano quelli del DB. 46 porzioni con un peso già presente sono state scartate;
+  - **pasta fresca e ripiena in revisione, non importata (8):** pasta fresca all'uovo, tagliatelle all'uovo, tortellini, cappelletti, ravioli ricotta e spinaci, culurgiones, cannelloni ricotta e spinaci, seadas;
+  - **fonti distinte:** tag "Stima" (`est:`) o "Etichetta" (`lab:`, 9 voci Kinder), oltre a USDA e Carbo. In `src` ci sono riga e valori originali del file;
+  - **motore separato:** `fooddb.js` è solo letto dallo script; il riconoscimento delle foto non cambia.
+- Non importate perché senza peso (4): Toast prosciutto e sottiletta, Sushi misto, Kebab in piadina; Cappuccino (nel file in ml di latte, nel DB in g). Dettaglio riga per riga in `tools/userdb/REPORT.md`.
+- ⚠️ Lo scarto tra file e DB è segnalato nel REPORT (es. Kiwi 11,5 contro 9 g/100 g). Il valore del DB non è stato cambiato.
+- Interfaccia (`app.js`): nella ricerca "≈ 79,4 (77,5–81,3) g/100 g · STIMA"; nel piatto, intervallo e note ("valore indicativo: se hai la confezione usa il codice a barre", "da etichetta: verifica che il formato sia lo stesso", "piatto composto: valore medio"); sotto i pulsanti: "porzioni dal tuo elenco" / "porzioni: LARN e tuo elenco". Pagina Fonti: voce "Il tuo elenco alimenti".
+- Verifiche (browser, localhost):
+  - catalogo con 167 voci (9 USDA + 149 stime + 9 etichette);
+  - Riso basmati 80 g ≈ 63,5 g (stima 62–65); Broccoli con la nota sullo stato; Kinder Cards 1 pezzo = 14,3 g; Latte 200 ml dal file accanto a 125 ml LARN;
+  - il pasto salvato ha gli stessi campi di sempre (`n`, `g`, `u`, `c100`, `cid`/`ref`, `pz`), i 4 pasti esistenti sono identici e i dati di prova sono stati ripristinati;
+  - motore AI: hash `5a9885b0`, 133,1 g, `gemini-2.5-flash-lite`;
+  - console senza errori; 375 px senza scorrimento orizzontale;
+  - `git diff` vuoto su `beta/js/engine`, `foods-it.json`, `portions-it.json` e sui file di produzione.
+- ❓ Non verificato: iPhone; comportamento offline al primo avvio dopo l'aggiornamento.
+
 ## 10. Roadmap generale
 
 Le percentuali sono calcolate così: attività concluse e verificate ÷ attività della fase. "Verificata" significa provata nel browser (Claude Browser) o con un test; la verifica su iPhone è una fase a sé (V).
@@ -405,13 +428,13 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 | 2 Libreria | ✅ preferiti · ✅ recenti · ✅ ricette · ✅ modifica pasti/annulla | Completata | 100% (4/4) |
 | 3 Barcode e promemoria | ✅ scanner · ✅ OFF + prodotti ricordati · ✅ pezzi/porzioni · ✅ avviso in-app · ✅ `.ics` | Completata (browser) | 100% (5/5) |
 | V Validazione iPhone | ⬜ installazione in Home · ⬜ fotocamera/ZXing · ⬜ `.ics` · ⬜ condivisione backup · ⬜ trascinamento pannello | In attesa dell'utente | 0% (0/5) |
-| D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ⛔ catalogo CREA | In corso (resta solo CREA, bloccato) | 92% (12/13) |
+| D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ✅ elenco utente come stime (§9.12) · ⛔ catalogo CREA | In corso (resta solo CREA, bloccato) | 93% (13/14) |
 | 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ⬜ IndexedDB (decisione aperta) | In corso | 83% (5/6) |
 | 5 Rilascio | ⬜ rifinitura e accessibilità · ⬜ test finale · ⬜ promozione di `beta/` in produzione | Pianificata | 0% (0/3) |
 
-**Complessivo: 33/43 attività = 77%.**
+**Complessivo: 34/44 attività = 77%.**
 
-- Fase attuale: **4 – Dati e Diario**, 83%: resta IndexedDB, in attesa di decisione. D è ferma al 92% (CREA bloccato); V attende i test dell'utente.
+- Fase attuale: **D – Database alimenti**, 93% (13/14): resta solo CREA, bloccato. Fase 4 all'83% (IndexedDB in attesa di decisione). V: l'utente riferisce che tutte le funzioni di alpha.8 funzionano su iPhone; ❓ voci di V non ancora spuntate una per una.
 - Bloccato:
   - ⛔ catalogo CREA, finché non sono chiariti i diritti di riuso (serve contattare CREA-AN);
   - V dipende dall'utente.
@@ -419,11 +442,13 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
   - la parte CREA del catalogo dipende solo dai diritti di riuso (regola e struttura pronte: `cid` `crea:<codice>`);
   - la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. test di alpha.7 su iPhone (pubblicata; ripristino da "File", CSV, calendario);
-  2. decidere su IndexedDB (§4.1), poi Fase 5.
+  1. pubblicare alpha.9 (con il consenso dell'utente) e provarla su iPhone: ricerca di voci "Stima"/"Etichetta", porzioni dal file;
+  2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
+  3. decidere su IndexedDB (§4.1), poi Fase 5.
 
 ### Registro sessioni
 - 16/11/2026: Fasi 0–3; beta pubblicata in `/carbo/beta/`; pezzi/porzioni; report creato; audit del DB alimenti; fattibilità USDA (script + 13 candidati + confronti); regola CREA decisa: amido + zuccheri; catalogo USDA (9 voci) integrato in ricerca, chip porzioni, pagina Fonti, verificato nel browser; alpha.5 pubblicata (commit `c83e149`).
 - 17/11/2026: porzioni standard LARN 2014 per 62 voci del DB (pulsanti, mai automatici), verificate nel browser; alpha.6 pubblicata (commit `1d5942a`).
 - 17/11/2026: Fase 4 al 83% — ripristino da backup (anteprima, Unisci, Sostituisci con copia di sicurezza, annullamento), storage persistente, calendario nel Diario, copia pasto, export CSV; verificati nel browser; alpha.7 pubblicata. IndexedDB rinviato per decisione.
 - 17/11/2026: subito dopo la pubblicazione di alpha.7 il browser serviva `index.html` nuovo con `app.js` vecchio (cache HTTP di GitHub Pages, 10 minuti, che il SW non aggirava). Corretto in alpha.8: SW v17 con `no-cache`/`reload`; verificato in locale (installazione, controllo della pagina, copia offline, nessun errore). ❓ Il primo avvio dopo l'aggiornamento passa ancora dal vecchio SW: può servire riaprire l'app una seconda volta.
+- 17/11/2026: l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone. Spiegato CREA. Elenco di 260 alimenti integrato come catalogo di stime separato (`foods-stime.json`, 158 voci + porzioni per 29 voci DB; 8 righe di pasta fresca/ripiena in revisione), verificato nel browser; alpha.9 non pubblicata.

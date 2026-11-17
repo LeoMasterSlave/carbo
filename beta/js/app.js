@@ -5,7 +5,7 @@ import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
 import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
-import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor}from"./data/catalog.js";
+import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor,portionSourceText}from"./data/catalog.js";
 import{parseBackup,mergePreview,mergeInto,replaceWith,saveSafetyCopy,safetyCopy,restoreSafetyCopy}from"./data/restore.js";
 import{mealsCSV}from"./data/csv.js";
 
@@ -103,6 +103,16 @@ function renderHist(){
 }
 
 // ---- piatto in composizione
+// Voce del catalogo ancora coerente con lo snapshot (stesso c100): serve solo a mostrare intervallo e note.
+const catInfo=i=>{const c=i.cid&&catByCid(i.cid);return c&&c.c100===i.c100?c:null};
+function valSub(i,u){
+  const c=catInfo(i),rg=c&&c.rng&&c.rng[1]>c.rng[0]?c.rng:null,notes=[];
+  if(c&&c.rel==="stima"&&!c.cmp)notes.push("valore indicativo: se hai la confezione usa il codice a barre");
+  if(c&&c.rel==="etichetta")notes.push("da etichetta: verifica che il formato sia lo stesso");
+  if(c&&c.stx)notes.push("l’elenco non indica se crudo o cotto");
+  if(c&&c.cmp)notes.push("piatto composto: valore medio, ricette diverse variano");
+  return `<span class="sub">${rg?"≈ ":""}${fmt(r1(i.c100))} g ogni 100 ${u}${rg?` · stima ${fmt(rg[0])}–${fmt(rg[1])}`:""}</span>${notes.length?`<span class="sub">${notes.join(" · ")}</span>`:""}`;
+}
 let showBlock=false;
 const blocked=()=>cur.some(i=>i.ask&&i.ask.some(a=>a.b));
 const LVL_TXT={alta:"Confidenza alta",media:"Confidenza media",bassa:"Confidenza bassa"};
@@ -112,12 +122,13 @@ function renderCur(){
     const tags=(i.ai?`<span class="tag ${i.conf==="bassa"?"low":""}">${LVL_TXT[i.conf||"media"]}</span>`:"")+(i.prov?`<span class="tag">provvisorio</span>`:"")+(i.rid?`<span class="tag">ricetta</span>`:"")+(i.cid&&SRC_LABEL[srcOf(i.cid)]?`<span class="tag src">${SRC_LABEL[srcOf(i.cid)]}</span>`:"");
     // porzioni convenzionali: si applicano solo toccandole
     const us=unitsOf(i);
-    const chips=us?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${us.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} ${u}</button>`}).join("")}${us[0].src==="larn2014"?`<span class="chsrc">porzioni standard LARN</span>`:""}</div>`:"";
+    const chips=us?`<div class="chips" role="group" aria-label="Porzioni di ${esc(i.n)}">${us.map((x,n)=>{const on=i.pz&&i.pz.w===x.w&&i.pz.t===x.t;return `<button class="chip" type="button" data-unit="${k}" data-ui="${n}" aria-pressed="${on?"true":"false"}">${esc(x.t)} · ${fmt(x.w)} ${u}</button>`}).join("")}${portionSourceText(us)?`<span class="chsrc">${portionSourceText(us)}</span>`:""}</div>`:"";
     const fv=!i.rid&&findFav(lib,i);
     const star=i.rid?"":`<button class="favb${fv?" on":""}" data-fav="${k}" type="button" aria-pressed="${fv?"true":"false"}" aria-label="${fv?"Togli dai preferiti":"Aggiungi ai preferiti"} ${esc(i.n)}">${fv?I_STAR_ON:I_STAR}</button>`;
     const askH=ask.length||(i.cand&&i.cand.length)?`<div class="ask ${ask.some(a=>a.b)?"":"ok"}" role="status">${ask.map(a=>esc(a.t)).join(" · ")}${i.cand&&i.cand.length?`<div>${i.cand.map(c=>`<button class="alt" data-alt="${k}" data-n="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`:""}${i.g>0&&ask.length?`<div><button class="alt" data-ok="${k}" type="button">Confermo</button></div>`:""}</div>`:"";
     const pz=i.pz&&i.pz.w>0?i.pz:null,byPz=pz&&!i.pzG;
-    const pzSub=pz?`<span class="sub">${esc(pz.t||"1 "+pz.l)} = ${fmt(pz.w)} ${u} (${fmt(pz.w*i.c100/100)} g CHO)${byPz&&i.g>0?` · ${fmt(i.g)} ${u} in tutto`:""}</span>`:"";
+    const pzR=pz&&catInfo(i)&&(us||[]).find(x=>x.w===pz.w&&x.t===pz.t&&x.r&&x.r[1]>x.r[0]);
+    const pzSub=pz?`<span class="sub">${esc(pz.t||"1 "+pz.l)} = ${fmt(pz.w)} ${u} (${pzR?"≈ ":""}${fmt(pz.w*i.c100/100)} g CHO${pzR?`, stima ${fmt(pzR.r[0])}–${fmt(pzR.r[1])}`:""})${byPz&&i.g>0?` · ${fmt(i.g)} ${u} in tutto`:""}</span>`:"";
     const unitH=pz?`<button class="gu pzu" data-pzu="${k}" type="button" aria-label="${byPz?"Inserisci in grammi":"Inserisci a "+pzPlural(pz.l,2)}">${byPz?(pz.l==="porzione"?"porz.":"pz"):u}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg></button>`:`<span class="gu">${u}</span>`;
     const stepH=byPz
       ?`<button data-pstep="${k}" data-d="-1" type="button" aria-label="Un ${pz.l} in meno di ${esc(i.n)}">${I_MIN}</button>
@@ -126,7 +137,7 @@ function renderCur(){
       :`<button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
    <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}">${unitH}
    <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>`;
-    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}<span class="sub">${r1(i.c100)} g ogni 100 ${u}</span>${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
+    return `<div class="item"><div class="nm"><span class="n">${esc(i.n)}</span>${tags}${valSub(i,u)}${pzSub}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
    <div class="stp">${stepH}${star}</div></div>`};
@@ -287,7 +298,7 @@ function renderSug(){
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
     .sort((a,b)=>rank(a)-rank(b)).slice(0,6)
-    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${fmt(f.c100)} g/100 ${f.u}${f.units.length?" · porzioni":""}${srcTag(srcOf(f.cid))}</small></button>`);
+    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?`≈ ${fmt(f.c100)} (${fmt(f.rng[0])}–${fmt(f.rng[1])})`:fmt(f.c100)} g/100 ${f.u}${f.units.length?" · porzioni":""}${srcTag(srcOf(f.cid))}</small></button>`);
   const foods=[...db,...cat];
   $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Ricette",rc)+grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
 }
@@ -853,4 +864,4 @@ renderRem();
 render();renderCur();checkKey();renderLibPanels();
 // catalogo esterno in background: la ricerca lo usa appena è pronto
 loadPortions().then(()=>{if(sheetOpen)renderSug();if(cur.length)renderCur()});
-loadCatalog().then(()=>{if(sheetOpen)renderSug();if(cur.some(i=>i.cid&&!i.units)){cur.forEach(i=>{if(i.cid&&!i.units){const u=unitsFor(i);if(u)i.units=u}});renderCur()}});
+loadCatalog().then(()=>{if(sheetOpen)renderSug();cur.forEach(i=>{if(i.cid&&!i.units){const u=unitsFor(i);if(u)i.units=u}});if(cur.length)renderCur()});
