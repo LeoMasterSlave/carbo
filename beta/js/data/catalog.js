@@ -4,8 +4,9 @@
 // Base dei valori: c100 = g di carboidrati disponibili per 100 g di parte edibile.
 
 // Due file: foods-it.json (USDA, verificato) e foods-stime.json (elenco dell'utente, tools/userdb/build.mjs:
-// stime "est:" ed etichette "lab:", con intervallo). Il primo ha la precedenza in caso di cid uguale.
-const URL_CATS = ["../../data/foods-it.json", "../../data/foods-stime.json"].map(p => new URL(p, import.meta.url));
+// stime "est:" ed etichette "lab:", con intervallo), più foods-crea.json (tabelle CREA "crea:", tools/crea/build.mjs).
+// Il primo ha la precedenza in caso di cid uguale.
+const URL_CATS = ["../../data/foods-it.json", "../../data/foods-crea.json", "../../data/foods-stime.json"].map(p => new URL(p, import.meta.url));
 let foods = [], byCid = new Map(), fileDbPortions = new Map(), loading = null;
 
 const validUnit = u => u && typeof u.t === "string" && u.w > 0 && u.w <= 2000;

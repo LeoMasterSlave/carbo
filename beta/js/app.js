@@ -324,7 +324,7 @@ function renderSug(){
   // catalogo esterno: dopo il DB; una voce con lo stesso nome e valore simile (±10%) a una del DB non si ripete
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
-    .sort((a,b)=>rank(a)-rank(b)).slice(0,6)
+    .sort((a,b)=>rank(a)-rank(b)||a.n.length-b.n.length).slice(0,8)
     .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?"≈ ":""}${fmt(f.c100)} g/100 ${f.u}${srcTag(srcOf(f.cid))}</small></button>`);
   const foods=[...db,...cat];
   $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods)+grp("Ricette",rc):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
@@ -388,7 +388,7 @@ function setEditing(id){
 }
 // Copia di un pasto (anche di un altro giorno): il piatto resta, diventa un pasto nuovo da salvare ora.
 $("asNew").onclick=()=>{if(!editId)return;setEditing(null);setType(defaultType());renderCur();toast("Copia pronta: controlla e salva per aggiungerla a oggi")};
-function resetPlate(){cur=[];showBlock=false;photoBlob=null;setEditing(null);$("rform").classList.add("hide");$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";renderCur()}
+function resetPlate(){cur=[];showBlock=false;photoBlob=null;setEditing(null);$("rform").classList.add("hide");$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";$("desc").value="";toggleDesc(false);renderCur()}
 $("clear").onclick=resetPlate;
 $("save").onclick=()=>{
   if(!cur.length)return;
@@ -486,6 +486,42 @@ async function analyze(){
   finally{clearInterval(tick);busy=false;$("analyze").removeAttribute("aria-busy");$("spin").classList.add("hide");$("scan").classList.remove("on")}
 }
 $("analyze").onclick=analyze;
+
+// ---- "Descrivi il piatto": stima da testo (engine/describe.js). Le voci si aggiungono al piatto.
+function toggleDesc(open){
+  const o=open??$("descBox").classList.contains("hide");
+  $("descBox").classList.toggle("hide",!o);$("descBtn").setAttribute("aria-expanded",String(o));
+  if(o){checkKey();$("desc").focus()}
+}
+$("descBtn").onclick=()=>toggleDesc();
+async function describe(){
+  const t=$("desc").value.trim();
+  if(busy)return;
+  if(!t){setMsg("Scrivi cosa mangi, es. “kebab medio”.","err");$("desc").focus();return}
+  if(!getKey()){setMsg("Manca la chiave AI: impostala per stimare dalle descrizioni.","err");checkKey();return}
+  busy=true;setMsg("");
+  $("descGo").setAttribute("aria-busy","true");$("dspin").classList.remove("hide");
+  let base="Stimo i carboidrati…";const t0=Date.now();
+  const paint=()=>{$("descTxt").textContent=base.replace(/…$/,"")+"… "+Math.round((Date.now()-t0)/1000)+" s"};
+  const stage=s=>{base=s;paint()};
+  const tick=setInterval(paint,500);paint();
+  try{
+    const {describeMeal}=await import("./engine/describe.js");
+    const {items}=await describeMeal(t,stage);
+    if(!items.length){setMsg("Non riconosco cibo in questa descrizione. Prova a essere più preciso o aggiungi a mano.")}
+    else{
+      items.forEach(i=>cur.push(i));showBlock=false;
+      renderCur();
+      const low=items.filter(i=>i.ask.some(a=>a.b)).length;
+      setMsg(`Aggiunti ${items.length} ${items.length===1?"alimento":"alimenti"} dalla descrizione.${low?` ${low} ${low===1?"voce da confermare":"voci da confermare"}: controlla alimento e quantità.`:" Controlla comunque i valori qui sotto."}`,low?"":"ok");
+      $("desc").value="";toggleDesc(false);
+      $("secPiatto").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
+    }
+  }catch(err){setMsg(err.message||"Stima non riuscita.","err")}
+  finally{clearInterval(tick);busy=false;$("descGo").removeAttribute("aria-busy");$("dspin").classList.add("hide");$("descTxt").textContent="Stima i carboidrati"}
+}
+$("descGo").onclick=describe;
+$("desc").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();describe()}});
 
 // ---- Altro: impostazioni AI (invariate)
 $("testKey").onclick=async()=>{
