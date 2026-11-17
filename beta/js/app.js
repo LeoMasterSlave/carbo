@@ -115,6 +115,10 @@ function valSub(i,u){
 }
 let showBlock=false;
 const blocked=()=>cur.some(i=>i.ask&&i.ask.some(a=>a.b));
+// Scelta fatta: quantità presente e niente da confermare. Se l'alimento non è stato riaperto si mostra solo nome + carboidrati.
+// "hold" (controlli visibili) e "more" (dettagli) sono solo stato dell'interfaccia: non vengono salvati nel pasto.
+const isDone=i=>i.g>0&&!(i.ask||[]).some(a=>a.b)&&!(i.cand&&i.cand.length);
+const isMin=i=>isDone(i)&&!i.hold&&!i.more;
 const LVL_TXT={alta:"Confidenza alta",media:"Confidenza media",bassa:"Confidenza bassa"};
 function renderCur(){
   const itemHTML=(i,k)=>{
@@ -137,12 +141,19 @@ function renderCur(){
       :`<button data-step="${k}" data-d="-10" type="button" aria-label="Meno 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_MIN}</button>
    <input type="number" inputmode="decimal" value="${i.g>0?Math.round(i.g*10)/10:""}" placeholder="${i.typ||""}" data-g="${k}" aria-label="${u==="ml"?"Millilitri":"Grammi"} di ${esc(i.n)}">${unitH}
    <button data-step="${k}" data-d="10" type="button" aria-label="Più 10 ${u==="ml"?"millilitri":"grammi"} di ${esc(i.n)}">${I_PLUS}</button>`;
-    // compatto di default (nome, valore per 100); toccando il nome: intervallo, note, porzione, fonte delle porzioni
-    const c0=catInfo(i),rg0=c0&&c0.rng&&c0.rng[1]>c0.rng[0];
-    const head=`<button class="n nmore" type="button" data-more="${k}" aria-expanded="${i.more?"true":"false"}">${esc(i.n)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${tags}`;
+    // scelta fatta: solo nome + carboidrati (resta visibile solo l'avviso di confidenza bassa dell'AI). Toccando il nome si riapre.
+    if(isMin(i)){
+      const low=i.ai&&i.conf==="bassa"?`<span class="tag low">${LVL_TXT.bassa}</span>`:"";
+      return `<div class="item min"><div class="nm"><button class="n nmore" type="button" data-more="${k}" aria-expanded="false" aria-label="${esc(i.n)}, ${fmt(i.g)} ${u}: tocca per modificare">${esc(i.n)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${low}</div>
+   <div class="c">${r1(itemC(i))}</div>
+   <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button></div>`;
+    }
+    // compatto (nome, valore per 100, porzioni, quantità); toccando il nome: intervallo, note, porzione, fonte delle porzioni
+    const c0=catInfo(i),rg0=c0&&c0.rng&&c0.rng[1]>c0.rng[0],open=i.more||i.hold;
+    const head=`<button class="n nmore" type="button" data-more="${k}" aria-expanded="${open?"true":"false"}">${esc(i.n)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${tags}`;
     const brief=`<span class="sub">${rg0?"≈ ":""}${fmt(r1(i.c100))} g/100 ${u}</span>`;
     const detail=i.more?`<div class="det">${valSub(i,u)}${pzSub}${us&&portionSourceText(us)?`<span class="sub">${portionSourceText(us)}</span>`:""}</div>`:brief;
-    return `<div class="item${i.more?" open":""}"><div class="nm">${head}${detail}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
+    return `<div class="item${open?" open":""}"><div class="nm">${head}${detail}${pr?`<label class="chk"><input type="checkbox" data-raw="${k}" ${i.st==="r"?"checked":""}><span>Peso a crudo</span></label>`:""}${chips}${askH}</div>
    <div class="c">${r1(itemC(i))}</div>
    <button class="x" data-rm="${k}" type="button" aria-label="Rimuovi ${esc(i.n)}">${I_X}</button>
    <div class="stp">${stepH}${star}</div></div>`};
@@ -248,16 +259,17 @@ document.body.addEventListener("click",e=>{
   const ad=e.target.closest("[data-add]");if(ad)openSheet(ad.dataset.add);
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
   // dettagli dell'alimento (solo interfaccia: "more" non viene salvato nel pasto)
-  const mo=e.target.closest("[data-more]");if(mo){const it=cur[+mo.dataset.more];if(it){it.more=!it.more;renderCur()}}
-  const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step,it=cur[k];it.g=Math.max(0,Math.round(it.g)+(+s.dataset.d));setWeight(it);renderCur()}
-  const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);setWeight(it);renderCur()}
+  // nome toccato: alimento ridotto → si riapre tutto; aperto → si richiude
+  const mo=e.target.closest("[data-more]");if(mo){const it=cur[+mo.dataset.more];if(it){if(isMin(it)){it.hold=true;it.more=true}else if(it.more||it.hold){it.more=false;it.hold=false}else it.more=true;renderCur()}}
+  const s=e.target.closest("[data-step]");if(s){const k=+s.dataset.step,it=cur[k];it.g=Math.max(0,Math.round(it.g)+(+s.dataset.d));it.hold=true;setWeight(it);renderCur()}
+  const ps=e.target.closest("[data-pstep]");if(ps){const it=cur[+ps.dataset.pstep],w=it.pz.w,n=Math.max(0,Math.round(it.g/w)+(+ps.dataset.d));it.g=r1(n*w);it.hold=true;setWeight(it);renderCur()}
   const ch=e.target.closest("[data-unit]");if(ch){
-    // tocco esplicito su una porzione: 1 porzione, poi si conta a pezzi; resta modificabile a mano
+    // tocco esplicito su una porzione: 1 porzione, poi si conta a pezzi; scelta fatta → l'alimento si riduce
     const it=cur[+ch.dataset.unit],us=it&&unitsOf(it),x=us&&us[+ch.dataset.ui];
-    if(x){it.pz=cleanPz({w:x.w,l:x.l,t:x.t});it.pzG=false;it.g=it.pz.w;setWeight(it);renderCur()}
+    if(x){it.pz=cleanPz({w:x.w,l:x.l,t:x.t});it.pzG=false;it.g=it.pz.w;it.hold=false;it.more=false;setWeight(it);renderCur()}
     return;
   }
-  const pu=e.target.closest("[data-pzu]");if(pu){const it=cur[+pu.dataset.pzu];it.pzG=!it.pzG;renderCur();const f=document.querySelector(`[data-pn="${pu.dataset.pzu}"],[data-g="${pu.dataset.pzu}"]`);if(f)f.focus()}
+  const pu=e.target.closest("[data-pzu]");if(pu){const it=cur[+pu.dataset.pzu];it.pzG=!it.pzG;it.hold=true;renderCur();const f=document.querySelector(`[data-pn="${pu.dataset.pzu}"],[data-g="${pu.dataset.pzu}"]`);if(f)f.focus()}
   const ok=e.target.closest("[data-ok]");if(ok){const it=cur[+ok.dataset.ok];it.ask=[];it.cand=[];relevel(it);renderCur()}
   const alt=e.target.closest("[data-alt]");if(alt){const it=cur[+alt.dataset.alt],f=dbByName(alt.dataset.n);if(f){const u0=it.u||"g";it.n=f.n;it.c100=f.c;it.db=f.n;it.st=f.st||null;it.prov=!!f.p;it.cand=[];it.ask=it.ask.filter(a=>a.k==="weight");if(f.cmp)it.ask.push({k:"cmp",t:f.nt||"Piatto composto"});setUnit(it,f,u0);it.lvl="media";relevel(it);renderCur()}}
   const g=e.target.closest("[data-go]");if(g)go(g.dataset.go);
@@ -272,10 +284,12 @@ $("items").addEventListener("input",e=>{
   $("cur").textContent=total();
 });
 $("items").addEventListener("change",e=>{
-  if(e.target.dataset.g!=null||e.target.dataset.pn!=null){renderCur();return}
+  // quantità confermata (uscita dal campo): scelta fatta → l'alimento si riduce
+  const gk=e.target.dataset.g??e.target.dataset.pn;
+  if(gk!=null){const it=cur[gk];if(it){it.hold=false;it.more=false}renderCur();return}
   const k=e.target.dataset.raw;if(k==null)return;
   // crudo/cotto: una porzione standard dello stato precedente non vale più per il nuovo
-  const it=cur[k],had=unitsOf(it);swapState(it);
+  const it=cur[k],had=unitsOf(it);it.hold=true;swapState(it);
   if(it.pz&&had&&had.some(x=>x.t===it.pz.t&&x.w===it.pz.w)){delete it.pz;it.pzG=false}
   renderCur();
 });
