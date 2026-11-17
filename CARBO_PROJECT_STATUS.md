@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · online: `2.0.0-alpha.9` (commit `1b4cc56`) · in locale, non pubblicata: `2.0.0-alpha.10` (pannello Aggiungi più compatto, §5; SW v19)
+Ultimo aggiornamento: 17/11/2026 (elenco alimenti dell'utente come catalogo di stime, §9.12; roadmap §10) · online: `2.0.0-alpha.10` (commit `56ea08e`) · in locale, non pubblicata: `2.0.0-alpha.11` (scheda Impostazioni + pagina Crediti e avvertenze, §5; SW v20)
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -135,10 +135,10 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 - Viste (`beta/index.html`):
   - `#v-oggi`: totale del giorno, obiettivo, avviso promemoria, pasti, pasti mancanti.
   - `#v-diario`: calendario mensile `#cal` + storico con ricerca.
-  - `#v-altro`: Alimenti (pannelli `#p-fav`, `#p-rcp`), Promemoria, Personalizzazione, Analisi AI, Dati, Applicazione (pannello `#p-src` Fonti dei dati).
+  - `#v-altro` (scheda **Impostazioni** dalla alpha.11, icona a ingranaggio; id interno invariato): Alimenti (pannelli `#p-fav`, `#p-rcp`), Promemoria, Personalizzazione, Analisi AI, Dati, Applicazione (pannelli `#p-src` Fonti dei dati e `#p-info` **Crediti e avvertenze**: stime dell'AI, non è un dispositivo medico, dati e privacy, riconoscimenti). L'avvertenza AI non è più nel pannello Aggiungi (richiesta dell'utente, 17/11/2026).
 - Piatto: le voci del catalogo hanno l'etichetta di fonte (`.tag.src`) e i chip delle porzioni (`.chips`/`.chip`). Toccare un chip imposta 1 porzione e passa al conteggio a pezzi; i grammi restano modificabili.
 - Pannello Aggiungi `#sheet`: tipo di pasto, Foto / Codice a barre, ricerca, piatto, salva come ricetta, totale e Salva. Su telefono si chiude trascinando verso il basso; da 768 px in su è una finestra modale.
-- Pannello Aggiungi, alpha.10 (17/11/2026, richiesta dell'utente; verificato nel browser, non pubblicato):
+- Pannello Aggiungi, alpha.10 (17/11/2026, richiesta dell'utente; verificato nel browser, pubblicato con commit `56ea08e` e verificato online; non provato su iPhone):
   - a ricerca vuota: tendine `details.pdrop` **Preferiti**, **Recenti**, **Ricette** (in fondo), chiuse di default con il numero di voci; l'ultima apertura è ricordata in `carbo_drops` (solo comodità, nessun dato dei pasti). Nei risultati di ricerca le ricette sono in fondo;
   - righe di ricerca: il nome ha tutta la larghezza, i dettagli vanno a capo sotto quando non ci stanno. Testo ridotto a "≈ 76,3 g/100 g · STIMA" (l'intervallo è nei dettagli);
   - piatto compatto: nome, tag, "g/100", porzioni e quantità. Toccando il nome (`data-more`, freccia) si aprono intervallo, note di affidabilità, porzione in g di CHO e fonte delle porzioni. `more` resta solo nell'interfaccia e non viene salvato;
@@ -462,4 +462,5 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 17/11/2026: Fase 4 al 83% — ripristino da backup (anteprima, Unisci, Sostituisci con copia di sicurezza, annullamento), storage persistente, calendario nel Diario, copia pasto, export CSV; verificati nel browser; alpha.7 pubblicata. IndexedDB rinviato per decisione.
 - 17/11/2026: subito dopo la pubblicazione di alpha.7 il browser serviva `index.html` nuovo con `app.js` vecchio (cache HTTP di GitHub Pages, 10 minuti, che il SW non aggirava). Corretto in alpha.8: SW v17 con `no-cache`/`reload`; verificato in locale (installazione, controllo della pagina, copia offline, nessun errore). ❓ Il primo avvio dopo l'aggiornamento passa ancora dal vecchio SW: può servire riaprire l'app una seconda volta.
 - 17/11/2026: l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone. Spiegato CREA. Elenco di 260 alimenti integrato come catalogo di stime separato (`foods-stime.json`, 158 voci + porzioni per 29 voci DB; 8 righe di pasta fresca/ripiena in revisione), verificato nel browser; alpha.9 pubblicata (commit `1b4cc56`; commit con il git di GitHub Desktop perché G-Helper bloccava i clic, push dal pulsante di GitHub Desktop) e verificata online, poi su iPhone (anche offline).
-- 17/11/2026: alpha.10 in locale — tendine Preferiti/Recenti/Ricette, nomi leggibili nella ricerca, piatto compatto con dettagli al tocco, avvertenze più piccole, zoom disattivato. Verificata nel browser (375 px, salvataggio invariato, motore AI `5a9885b0`/133,1 g, nessun errore); non pubblicata.
+- 17/11/2026: alpha.10 in locale — tendine Preferiti/Recenti/Ricette, nomi leggibili nella ricerca, piatto compatto con dettagli al tocco, avvertenze più piccole, zoom disattivato. Verificata nel browser (375 px, salvataggio invariato, motore AI `5a9885b0`/133,1 g, nessun errore); pubblicata (commit `56ea08e`) e verificata online: SW v19, versione alpha.10, righe di ricerca compatte, nessun errore.
+- 17/11/2026: alpha.11 in locale — "Altro" diventa "Impostazioni"; nuova pagina Crediti e avvertenze con l'avvertenza AI (tolta dal pannello Aggiungi). Verificata nel browser (375 px, navigazione tra i pannelli, nessun errore). ⏳ Proposta interrotta, non applicata: alimento del piatto ridotto a nome + carboidrati dopo la scelta.

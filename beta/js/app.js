@@ -587,6 +587,7 @@ function showPanel(p){
   $("p-fav").classList.toggle("hide",panel!=="fav");
   $("p-rcp").classList.toggle("hide",panel!=="rcp");
   $("p-src").classList.toggle("hide",panel!=="src");
+  $("p-info").classList.toggle("hide",panel!=="info");
   renderLibPanels();window.scrollTo(0,0);
 }
 const favSum=f=>[f.g>0?`${qty(f.g,f.u,f.pz)} abituali`:"quantità non impostata",`${fmt(f.c100)} g/100 ${f.u}`].join(" · ");

@@ -40,7 +40,7 @@
 
 <section id="v-altro" class="view hide">
  <div id="altroMain">
-  <h1>Altro</h1>
+  <h1>Impostazioni</h1>
   <div class="group"><h2>Alimenti</h2>
     <div class="list">
       <button class="row nav-row" type="button" data-panel="fav"><span>Preferiti</span><span class="mut" id="favCount"></span></button>
@@ -90,25 +90,24 @@
     <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p>
   </div>
   <div class="group"><h2>Applicazione</h2>
-    <div class="list"><button class="row nav-row" type="button" data-panel="src"><span>Fonti dei dati</span><span class="mut"></span></button><div class="row"><span>Versione</span><span class="mut" id="ver"></span></div></div>
-    <p class="note fine">Carbo fornisce stime indicative e non è un dispositivo medico.</p>
+    <div class="list"><button class="row nav-row" type="button" data-panel="src"><span>Fonti dei dati</span><span class="mut"></span></button><button class="row nav-row" type="button" data-panel="info"><span>Crediti e avvertenze</span><span class="mut"></span></button><div class="row"><span>Versione</span><span class="mut" id="ver"></span></div></div>
   </div>
  </div>
  <div id="p-fav" class="panel hide">
-  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
   <h1>Preferiti</h1>
   <p class="lead">Gli alimenti che usi spesso, con la quantità abituale. Aggiungili con la stella nel piatto.</p>
   <div id="favList"></div>
  </div>
  <div id="p-rcp" class="panel hide">
-  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
   <h1>Ricette</h1>
   <p class="lead">Componi il piatto con gli ingredienti, poi tocca “Salva come ricetta”. Modificare una ricetta non cambia i pasti già registrati.</p>
   <button class="pri" type="button" id="newRecipe">Nuova ricetta</button>
   <div id="rcpList"></div>
  </div>
  <div id="p-src" class="panel hide">
-  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Altro</button>
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
   <h1>Fonti dei dati</h1>
   <p class="lead">Ogni alimento indica da dove viene il suo valore. Tutti i valori sono grammi di carboidrati disponibili ogni 100 g di parte edibile (ogni 100 ml per le bevande). I pasti salvati conservano il valore usato in quel momento.</p>
   <ul class="srcl">
@@ -119,6 +118,16 @@
    <li><h3>Open Food Facts <span class="st on">in uso</span></h3><p>Prodotti confezionati cercati con il codice a barre: valori dichiarati in etichetta. Viene inviato solo il codice a barre.</p><p>© Open Food Facts contributors, licenza <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">openfoodfacts.org</a></p></li>
    <li><h3>CREA Alimenti e Nutrizione <span class="st">non integrato</span></h3><p>Tabelle di composizione degli alimenti italiane. Non ancora usate in Carbo: le condizioni di riutilizzo dei dati sono in verifica.</p></li>
    <li><h3>Inseriti da te <span class="st on">in uso</span></h3><p>Alimenti personalizzati, prodotti corretti a mano, preferiti e ricette: restano solo su questo telefono.</p></li>
+  </ul>
+ </div>
+ <div id="p-info" class="panel hide">
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
+  <h1>Crediti e avvertenze</h1>
+  <ul class="srcl">
+   <li><h3>Stime dell’AI</h3><p>Le stime dell’AI sono indicative: pesi e carboidrati possono essere sbagliati, soprattutto con condimenti, salse e porzioni difficili da valutare. Correggi i grammi se li conosci.</p></li>
+   <li><h3>Non è un dispositivo medico</h3><p>Carbo fornisce stime indicative. Per dosare l’insulina o per decisioni cliniche affidati ai valori verificati e al tuo medico.</p></li>
+   <li><h3>Dati e privacy</h3><p>Pasti, preferiti, ricette e chiave AI restano solo su questo telefono. La foto viene inviata solo al servizio AI che hai scelto; per il codice a barre viene inviato solo il codice a Open Food Facts.</p></li>
+   <li><h3>Riconoscimenti</h3><p>Valori nutrizionali: vedi <button class="txt ink" type="button" data-panel="src">Fonti dei dati</button>.</p><p>Scanner del codice a barre: ZXing (<code>@zxing/library</code>), licenza Apache 2.0.</p></li>
   </ul>
  </div>
 </section>
@@ -176,7 +185,6 @@
         <div class="rbtn"><button class="txt" id="rcancel" type="button">Annulla</button><button class="pri" type="submit">Salva ricetta</button></div>
       </form>
     </div>
-    <p class="note fine">Le stime dell’AI sono indicative: pesi e carboidrati possono essere sbagliati, soprattutto con condimenti, salse e porzioni difficili da valutare. Correggi i grammi se li conosci. Non è un dispositivo medico: per dosare l’insulina o per decisioni cliniche affidati ai valori verificati e al tuo medico.</p>
   </div>
   <div class="scanner hide" id="scanner" role="region" aria-label="Scanner codice a barre">
     <div class="sc-h"><button class="back" id="scanBack" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Pasto</button><h3>Codice a barre</h3><span></span></div>
@@ -197,7 +205,7 @@
   <nav class="glass" aria-label="Sezioni">
     <button data-v="oggi" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>Oggi</button>
     <button data-v="diario"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Diario</button>
-    <button data-v="altro"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.25"/><circle cx="12" cy="12" r="1.25"/><circle cx="19" cy="12" r="1.25"/></svg>Altro</button>
+    <button data-v="altro"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni</button>
   </nav>
   <button class="fab" id="fab" type="button" aria-label="Aggiungi pasto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
 </div>
