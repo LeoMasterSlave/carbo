@@ -33,6 +33,7 @@
 
 <section id="v-diario" class="view hide">
   <h1>Diario</h1>
+  <div class="cal" id="cal" role="group" aria-label="Calendario dei pasti"></div>
   <input id="hq" type="search" placeholder="Cerca nello storico" aria-label="Cerca nello storico" autocomplete="off">
   <div id="hist"></div>
 </section>
@@ -77,9 +78,15 @@
   <div class="group"><h2>Dati</h2>
     <div class="list">
       <button class="row" id="backup" type="button">Esporta backup</button>
+      <button class="row" id="restore" type="button">Ripristina da backup</button>
+      <button class="row" id="csv" type="button">Esporta CSV per foglio di calcolo</button>
+      <button class="row hide" id="undoRestore" type="button">Riporta i dati a prima del ripristino</button>
       <button class="row danger" id="wipe" type="button">Cancella tutti i pasti</button>
     </div>
+    <input type="file" id="rsFile" accept="application/json,.json" class="hide" tabindex="-1" aria-hidden="true">
+    <div class="rsbox hide" id="rsPrev" role="region" aria-label="Anteprima del backup" aria-live="polite"></div>
     <p class="msg" id="bkMsg" role="status" aria-live="polite"></p>
+    <p class="msg" id="stMsg" role="status"></p>
     <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p>
   </div>
   <div class="group"><h2>Applicazione</h2>
@@ -159,6 +166,7 @@
       <div class="pacts" id="pacts">
         <button class="txt" id="clear" type="button">Svuota piatto</button>
         <button class="txt" id="asRecipe" type="button">Salva come ricetta</button>
+        <button class="txt hide" id="asNew" type="button">Copia come nuovo pasto</button>
       </div>
       <form class="rform hide" id="rform">
         <label class="fld2"><span>Nome della ricetta</span><input id="rname" placeholder="Es. Lasagna della domenica" maxlength="80" required></label>

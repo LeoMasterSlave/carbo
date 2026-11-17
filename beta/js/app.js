@@ -6,6 +6,8 @@ import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/p
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
 import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor}from"./data/catalog.js";
+import{parseBackup,mergePreview,mergeInto,replaceWith,saveSafetyCopy,safetyCopy,restoreSafetyCopy}from"./data/restore.js";
+import{mealsCSV}from"./data/csv.js";
 
 const $=id=>document.getElementById(id);
 let cur=[];
@@ -66,14 +68,38 @@ function render(){
   $("slots").innerHTML=miss.length?`<span class="slots-l">Da registrare</span>`+miss.map(t=>`<button class="slot" type="button" data-add="${t}">${I_PLUS_S}${t}</button>`).join(""):"";
   renderHist();
 }
+// ---- calendario del Diario: un mese alla volta; toccare un giorno filtra lo storico
+let calM=null,calDay=null;
+const WD=["L","M","M","G","V","S","D"];
+function renderCal(){
+  const now=new Date();if(!calM)calM=new Date(now.getFullYear(),now.getMonth(),1);
+  const y=calM.getFullYear(),mo=calM.getMonth(),days=new Date(y,mo+1,0).getDate(),lead=(new Date(y,mo,1).getDay()+6)%7;
+  const tot={};state.meals.forEach(m=>{const k=tdKey(m.ts);tot[k]=(tot[k]||0)+m.total});
+  const today=tdKey(now),thisM=y===now.getFullYear()&&mo===now.getMonth();
+  const title=calM.toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+  let cells=WD.map(d=>`<span class="wd" aria-hidden="true">${d}</span>`).join("")+"<span></span>".repeat(lead);
+  for(let d=1;d<=days;d++){
+    const k=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,t=tot[k],fut=k>today;
+    const lab=new Date(y,mo,d).toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})+(t!=null?`, ${Math.round(t)} grammi`:", nessun pasto");
+    cells+=`<button type="button" data-day="${k}" class="${t!=null?"has":""}${k===today?" today":""}" aria-pressed="${calDay===k?"true":"false"}" aria-label="${lab}"${fut?" disabled":""}>${d}<small>${t!=null?Math.round(t):""}</small></button>`;
+  }
+  const sel=calDay?new Date(calDay+"T12:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}):"";
+  $("cal").innerHTML=`<div class="cal-h"><button class="ibtn" type="button" data-calm="-1" aria-label="Mese precedente"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><b aria-live="polite">${title}</b><button class="ibtn" type="button" data-calm="1" aria-label="Mese successivo"${thisM?" disabled":""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="cal-g">${cells}</div>${calDay?`<div class="cal-f"><span>${sel}</span><button class="txt ink" type="button" data-calall>Mostra tutti i giorni</button></div>`:""}`;
+}
+$("cal").onclick=e=>{
+  const m=e.target.closest("[data-calm]");if(m){calM=new Date(calM.getFullYear(),calM.getMonth()+(+m.dataset.calm),1);renderCal();return}
+  const d=e.target.closest("[data-day]");if(d){calDay=calDay===d.dataset.day?null:d.dataset.day;renderCal();renderHist();return}
+  if(e.target.closest("[data-calall]")){calDay=null;renderCal();renderHist()}
+};
 function renderHist(){
+  renderCal();
   const raw=$("hq").value.trim(),q=fold(raw);
-  const hit=m=>!q||fold(m.type).includes(q)||m.items.some(i=>fold(i.n).includes(q));
+  const hit=m=>(!calDay||tdKey(m.ts)===calDay)&&(!q||fold(m.type).includes(q)||m.items.some(i=>fold(i.n).includes(q)));
   const days={};state.meals.filter(hit).forEach(m=>{(days[tdKey(m.ts)]??=[]).push(m)});
   $("hist").innerHTML=Object.keys(days).sort().reverse().map(k=>{
     const ms=days[k].slice().sort((a,b)=>b.ts-a.ts),t=ms.reduce((s,m)=>s+m.total,0);
     return `<section class="day"><div class="dh"><b>${new Date(k+"T12:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})}<small>${ms.length} ${ms.length===1?"pasto":"pasti"}</small></b><span class="num">${Math.round(t)} g</span></div>${ms.map(mealRow).join("")}</section>`
-  }).join("")||`<p class="empty">${q?`Nessun pasto contiene “${esc(raw)}”.`:"Ancora nessun dato."}</p>`;
+  }).join("")||`<p class="empty">${q?`Nessun pasto contiene “${esc(raw)}”${calDay?" in questo giorno":""}.`:calDay?"Nessun pasto in questo giorno.":"Ancora nessun dato."}</p>`;
 }
 
 // ---- piatto in composizione
@@ -320,7 +346,10 @@ function setEditing(id){
   $("sheetT").textContent=id?"Modifica pasto":"Nuovo pasto";
   $("save").textContent=id?"Aggiorna pasto":"Salva pasto";
   $("clear").textContent=id?"Annulla modifica":"Svuota piatto";
+  $("asNew").classList.toggle("hide",!id);
 }
+// Copia di un pasto (anche di un altro giorno): il piatto resta, diventa un pasto nuovo da salvare ora.
+$("asNew").onclick=()=>{if(!editId)return;setEditing(null);setType(defaultType());renderCur();toast("Copia pronta: controlla e salva per aggiungerla a oggi")};
 function resetPlate(){cur=[];showBlock=false;photoBlob=null;setEditing(null);$("rform").classList.add("hide");$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";renderCur()}
 $("clear").onclick=resetPlate;
 $("save").onclick=()=>{
@@ -334,6 +363,7 @@ $("save").onclick=()=>{
   else state.meals.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),ts:Date.now(),type,items,total:t});
   pushRecents(lib,cur);persistLib();
   persist();resetPlate();render();
+  if(!old)checkStorage(true); // dopo un pasto salvato il browser concede più facilmente la protezione
   if(!old)go("oggi");else closeSheet();
   toast(`${old?"Pasto aggiornato":"Pasto salvato"} · ${type}, ${Math.round(t)} g`);
 };
@@ -454,6 +484,76 @@ $("backup").onclick=async()=>{
     m.className="msg ok";m.textContent=`Backup pronto: ${state.meals.length} ${state.meals.length===1?"pasto":"pasti"}, ${lib.favorites.length} preferiti, ${lib.recipes.length} ricette. La chiave AI non è inclusa.`}
   catch(e){m.className="msg err";m.textContent="Non sono riuscito a creare il backup."}
 };
+// ---- Altro: export CSV (solo lettura)
+$("csv").onclick=async()=>{
+  const m=$("bkMsg");
+  if(!state.meals.length){m.className="msg";m.textContent="Nessun pasto da esportare.";return}
+  try{const r=await saveFile(new Blob([mealsCSV(state.meals)],{type:"text/csv;charset=utf-8"}),`carbo-pasti-${tdKey(Date.now())}.csv`,"Pasti Carbo");
+    if(r!=="cancel"){m.className="msg ok";m.textContent=`CSV pronto: ${state.meals.length} ${state.meals.length===1?"pasto":"pasti"}, una riga per alimento.`}}
+  catch(e){m.className="msg err";m.textContent="Non sono riuscito a creare il CSV."}
+};
+// ---- Altro: ripristino da backup. Prima si legge e si mostra l'anteprima; i dati cambiano solo con Unisci o Sostituisci.
+let rsData=null;
+const pl=(n,s,p)=>`${n} ${n===1?s:p}`;
+$("restore").onclick=()=>{$("rsFile").value="";$("rsFile").click()};
+$("rsFile").onchange=async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const box=$("rsPrev");
+  if(f.size>20*1024*1024){rsData=null;box.classList.remove("hide");box.innerHTML=`<p class="warn">File troppo grande per essere un backup di Carbo.</p><div class="acts"><button class="txt" type="button" data-rs="close">Chiudi</button></div>`;return}
+  const b=parseBackup(await f.text());rsData=b.ok?b:null;box.classList.remove("hide");
+  if(!b.ok){box.innerHTML=`<p class="warn">${esc(b.err)}</p><div class="acts"><button class="txt" type="button" data-rs="close">Chiudi</button></div>`;return}
+  const p=mergePreview(state,lib,b),L=b.library;
+  const range=b.from?(tdKey(b.from)===tdKey(b.to)?fmtDay(b.from):`dal ${fmtDay(b.from)} al ${fmtDay(b.to)}`):"";
+  box.innerHTML=`<h3>Backup del ${b.exportedAt?fmtDay(Date.parse(b.exportedAt)):"?"} · Carbo ${esc(b.appVersion)}</h3>
+   <ul><li>${pl(b.meals.length,"pasto","pasti")}${range?" "+range:""}</li>${L?`<li>${pl(L.favorites.length,"preferito","preferiti")}, ${pl(L.recipes.length,"ricetta","ricette")}, ${pl(Object.keys(L.products).length,"prodotto","prodotti")}</li>`:""}
+   <li>Unendo: ${pl(p.newMeals,"pasto nuovo","pasti nuovi")}${p.sameMeals?` (${p.sameMeals} già ${p.sameMeals===1?"presente, resta com'è":"presenti, restano come sono"})`:""}${L?`, ${pl(p.newFav,"preferito","preferiti")}, ${pl(p.newRcp,"ricetta","ricette")}, ${pl(p.newProd,"prodotto","prodotti")}`:""}</li>
+   <li>Ora sul telefono: ${pl(state.meals.length,"pasto","pasti")}, ${pl(lib.favorites.length,"preferito","preferiti")}, ${pl(lib.recipes.length,"ricetta","ricette")}</li></ul>
+   ${b.skipped?`<p class="warn">${b.skipped} ${b.skipped===1?"pasto non è leggibile e verrà ignorato":"pasti non sono leggibili e verranno ignorati"}.</p>`:""}
+   ${b.sumOk?"":`<p class="warn">Il controllo di integrità non corrisponde: il file potrebbe essere stato modificato o danneggiato. Per sicurezza è possibile solo unire.</p>`}
+   ${isReadOnly()&&L?`<p class="warn">La libreria su questo telefono è di una versione più recente: verranno ripristinati solo i pasti.</p>`:""}
+   <div class="acts"><button class="txt ink" type="button" data-rs="merge">Unisci ai dati attuali</button>${b.sumOk?`<button class="txt danger" type="button" data-rs="replace">Sostituisci tutto</button>`:""}<button class="txt" type="button" data-rs="close">Annulla</button></div>`;
+  box.scrollIntoView({block:"nearest",behavior:reduced()?"auto":"smooth"});
+};
+let rsArm=null;
+function applyRestore(next,how){
+  state=next.state;persist();
+  if(!isReadOnly()){lib=next.lib;persistLib()}
+  rsData=null;$("rsPrev").classList.add("hide");$("rsPrev").innerHTML="";
+  render();renderLibPanels();renderUndoRestore();
+  $("bkMsg").className="msg ok";$("bkMsg").textContent=how;
+}
+$("rsPrev").onclick=e=>{
+  const a=e.target.closest("[data-rs]");if(!a)return;
+  const k=a.dataset.rs;
+  if(k==="close"||!rsData){rsData=null;$("rsPrev").classList.add("hide");$("rsPrev").innerHTML="";return}
+  if(k==="merge"){const p=mergePreview(state,lib,rsData);applyRestore(mergeInto(state,lib,rsData),`Backup unito: ${pl(p.newMeals,"pasto aggiunto","pasti aggiunti")}, nessun dato esistente modificato.`);return}
+  if(k==="replace"&&rsData.sumOk){
+    if(!a.dataset.arm){a.dataset.arm="1";a.textContent="Tocca di nuovo: sostituisce i dati attuali";clearTimeout(rsArm);rsArm=setTimeout(()=>{delete a.dataset.arm;a.textContent="Sostituisci tutto"},5000);return}
+    // copia di sicurezza obbligatoria: senza, non si sostituisce nulla
+    if(!saveSafetyCopy()){$("bkMsg").className="msg err";$("bkMsg").textContent="Spazio insufficiente per la copia di sicurezza: esporta prima un backup, oppure usa Unisci.";return}
+    const n=rsData.meals.length;applyRestore(replaceWith(state,lib,rsData),`Dati sostituiti: ${pl(n,"pasto","pasti")} dal backup. I dati di prima sono conservati: puoi riportarli con “Riporta i dati a prima del ripristino”.`);
+  }
+};
+let undoArm=null;
+function renderUndoRestore(){const c=safetyCopy(),b=$("undoRestore");b.classList.toggle("hide",!c);if(c&&!b.dataset.arm)b.textContent=`Riporta i dati a prima del ripristino (${fmtDay(c.ts)})`}
+$("undoRestore").onclick=()=>{
+  const b=$("undoRestore");
+  if(!b.dataset.arm){b.dataset.arm="1";b.textContent="Tocca di nuovo per confermare";clearTimeout(undoArm);undoArm=setTimeout(()=>{delete b.dataset.arm;renderUndoRestore()},4000);return}
+  delete b.dataset.arm;
+  if(!restoreSafetyCopy()){$("bkMsg").className="msg err";$("bkMsg").textContent="Non sono riuscito a riportare i dati.";return}
+  const l=lsGet();state=l&&l.meals?l:{meals:[],goal:null};lib=loadLib();
+  render();renderLibPanels();renderUndoRestore();
+  $("bkMsg").className="msg ok";$("bkMsg").textContent=`Dati riportati a prima del ripristino: ${pl(state.meals.length,"pasto","pasti")}.`;
+};
+// ---- Altro: archiviazione persistente. Chiede al browser di non cancellare i dati quando manca spazio.
+async function checkStorage(ask){
+  const m=$("stMsg");if(!navigator.storage||!navigator.storage.persisted){m.textContent="";return}
+  try{
+    let p=await navigator.storage.persisted();
+    if(!p&&ask&&navigator.storage.persist)p=await navigator.storage.persist();
+    m.textContent=p?"Archiviazione protetta: il telefono non cancellerà i pasti per fare spazio.":"Archiviazione non protetta: su iPhone aggiungi Carbo alla schermata Home e fai backup regolari.";
+  }catch(e){m.textContent=""}
+}
 
 // ---- Altro: pannelli Preferiti e Ricette
 let panel="";
@@ -748,7 +848,7 @@ $("ver").textContent=APP_VERSION;
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 const _l=lsGet();if(_l&&_l.meals)state=_l;
 setType(defaultType());
-showLastBackup();
+showLastBackup();renderUndoRestore();checkStorage(false);
 renderRem();
 render();renderCur();checkKey();renderLibPanels();
 // catalogo esterno in background: la ricerca lo usa appena è pronto

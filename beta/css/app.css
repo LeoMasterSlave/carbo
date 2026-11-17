@@ -120,6 +120,26 @@ input[type=search]{-webkit-appearance:none;appearance:none}
 .day .dh b{font-weight:600}.day .dh small{color:var(--mut);font-size:13px;font-weight:400;margin-left:6px}
 .day .dh .num{font-size:20px}
 
+/* calendario del Diario: totali neutri, nessun giudizio sul valore */
+.cal{margin:0 0 var(--s4)}
+.cal-h{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-bottom:var(--s2)}
+.cal-h b{font-weight:600;text-transform:capitalize}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.cal-g .wd{font-size:11px;color:var(--mut);text-align:center;padding:2px 0}
+.cal-g button{min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:var(--r-sm,8px);font:500 14px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.cal-g button small{font-size:10px;font-weight:400;color:var(--mut);min-height:12px}
+.cal-g button.has small{color:var(--acc)}
+.cal-g button.today{box-shadow:inset 0 0 0 1px var(--line)}
+.cal-g button[aria-pressed=true]{background:var(--fill);box-shadow:inset 0 0 0 1px var(--acc)}
+.cal-g button:disabled{color:var(--line)}
+.cal-f{display:flex;justify-content:space-between;align-items:center;margin-top:var(--s2);font-size:14px;color:var(--mut)}
+/* anteprima del ripristino */
+.rsbox{margin-top:var(--s3);padding:var(--s4);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.rsbox h3{margin:0 0 var(--s2);font-size:15px;font-weight:600}
+.rsbox ul{margin:0 0 var(--s3);padding-left:18px;font-size:14px;line-height:1.5}
+.rsbox .warn{color:var(--danger);font-size:14px;margin:0 0 var(--s3)}
+.rsbox .acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
+
 /* ---------- Altro ---------- */
 .group{margin:0 0 var(--s5)}
 .list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}

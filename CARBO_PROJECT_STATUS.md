@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 17/11/2026 (Fase D: porzioni standard LARN, §9.11; roadmap §10) · versione beta `2.0.0-alpha.6`, pubblicata su `/carbo/beta/` il 17/11/2026 (commit successivo a `c83e149`)
+Ultimo aggiornamento: 17/11/2026 (Fase 4: ripristino, storage, calendario, copia pasto, CSV, §4.1; roadmap §10) · versione beta `2.0.0-alpha.7`, pubblicata su `/carbo/beta/` il 17/11/2026 (commit successivo a `1d5942a`)
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -22,6 +22,8 @@ Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su i
 | `beta/js/engine/ai.js` | | motore AI (codice spostato da v1) + adapter `analyzePhoto` |
 | `beta/js/engine/fooddb.js` | | DB alimenti, matching, normalizzazione (codice spostato da v1) |
 | `beta/js/data/backup.js` | | export JSON, checksum, consegna del file (condivisione/download) |
+| `beta/js/data/restore.js` | | ripristino da backup: `parseBackup` (controlli + checksum), `mergePreview`, `mergeInto`, `replaceWith`, copia di sicurezza `carbo_prerestore` |
+| `beta/js/data/csv.js` | | `mealsCSV`: export CSV (una riga per alimento, `;` e virgola decimale, BOM UTF-8) |
 | `beta/js/data/library.js` | | preferiti, recenti, ricette, prodotti (`carbo_lib`) |
 | `beta/js/data/products.js` | | Open Food Facts, prodotti salvati, peso del pezzo/porzione |
 | `beta/js/lib/barcode.js` | | scanner: `BarcodeDetector` → fallback ZXing, controllo GS1 |
@@ -30,7 +32,7 @@ Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su i
 | `beta/js/data/catalog.js` | | caricamento del catalogo esterno (`loadCatalog`, `catByCid`, etichette di fonte). Non importa `fooddb.js` |
 | `beta/data/foods-it.json` | | catalogo alimenti generato (oggi 9 voci USDA, 7,5 KB). Non modificare a mano: rigenerare con `tools/usda/build.mjs` |
 | `beta/data/portions-it.json` | | porzioni standard LARN 2014 per 62 voci del DB del motore, per nome (§9.11). Caricate da `catalog.js` (`loadPortions`, `portionsFor`) |
-| `beta/sw.js` | | SW beta, cache `carbo-beta-v14`, network-first; precarica anche catalogo e `catalog.js` |
+| `beta/sw.js` | | SW beta, cache `carbo-beta-v16`, network-first; precarica anche catalogo, porzioni, `catalog.js`, `restore.js`, `csv.js` |
 | `tools/usda/` | (fuori dall'app) | `build.mjs` (find/build), `selection.json` (selezione curata + esclusi con motivo) → genera `beta/data/foods-it.json` |
 | `CARBO_PROJECT_STATUS.md` | | questo report |
 
@@ -57,8 +59,13 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 | Promemoria: avviso in Oggi (finestra di 3 h, "Non oggi") + file `.ics` ricorrente | 🟡 `.ics` non provato su iOS |
 | Export backup JSON (foglio di condivisione su telefono) | 🟡 |
 | Tema Sistema/Chiaro/Scuro | ✅ |
-| Ripristino da backup, export CSV, calendario nel Diario, copia pasto da altro giorno | ⏳ |
-| IndexedDB, `navigator.storage.persist()` | ⏳ non implementati |
+| Porzioni standard LARN come pulsanti per 62 voci del DB | ✅ (browser) |
+| Ripristino da backup con anteprima, Unisci / Sostituisci, copia di sicurezza e "Riporta i dati a prima del ripristino" | ✅ (browser; scelta del file su iPhone non provata) |
+| Export CSV per foglio di calcolo | ✅ (browser; apertura in Numbers/Excel non provata) |
+| Calendario mensile nel Diario (totale per giorno, tocco = filtro) | ✅ (browser) |
+| Copia di un pasto (anche di un altro giorno) come nuovo pasto di oggi | ✅ (browser) |
+| `navigator.storage.persist()` con stato in Altro → Dati | ✅ (browser: richiesta e messaggio) · ❓ concessione reale su iPhone |
+| IndexedDB | ⏳ non implementato (decisione aperta, §4.1) |
 | Notifiche push | ⏳ escluse (servirebbe un backend) |
 
 ## 3. Motore AI — NON MODIFICARE
@@ -86,6 +93,7 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 | `carbo_prov`, `carbo_mode`, `carbo_key_*` | impostazioni e chiavi AI | v1 + beta |
 | `carbo_lib` | `{favorites, recents, recipes, products:{[ean]:{n, brand, c100, u, serving, pz?, src, ts}}}` | beta |
 | `carbo_theme`, `carbo_rem`, `carbo_rem_off`, `carbo_last_backup` | tema, promemoria, rinvii, data dell'ultimo backup | beta |
+| `carbo_prerestore` | `{ts, carbo, carbo_lib}`: copia dei dati prima dell'ultimo "Sostituisci" (una sola) | beta |
 
 - Regola dello snapshot: ogni pasto salva `c100`, `g` e `total` al momento del salvataggio. Modificare ricette, preferiti o prodotti non cambia i pasti passati (✅ verificato).
 - `pz` = `{w: grammi di 1 pezzo, l: "pezzo"|"porzione", t?: descrizione della porzione scelta}`.
@@ -93,13 +101,38 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 - Catalogo (`beta/data/foods-it.json`): `{format:"carbo-catalog", version, basis, sources, foods:[{cid, n, a?, cat, it, c100, u, units:[{t, w, l, base:"edibile", src}], src:{db, ds, id, desc, orig, formula}}]}`.
 - Libreria corrotta: viene messa da parte, non cancellata (guardia di sola lettura in `library.js`).
 - Backup: `{format:"carbo-backup", schemaVersion:2, appVersion, exportedAt, counts, checksum:{fnv1a32}, data:{meals, goal, library, settings}}`.
-- Migrazione: nessuna necessaria finora (formato additivo). IndexedDB e la migrazione verificata sono rinviati alla Fase 4.
+- Migrazione: nessuna necessaria finora (formato additivo).
+
+### 4.1 Fase 4 — dati e Diario (17/11/2026, alpha.7, verificata nel browser, pubblicata; non provata su iPhone)
+- **Ripristino** (Altro → Dati → "Ripristina da backup"):
+  - si sceglie il file e si vede un'anteprima, senza alcuna modifica ai dati: data e versione del backup, pasti e periodo, preferiti/ricette/prodotti, cosa aggiungerebbe "Unisci", dati attuali;
+  - controlli: JSON valido, `format`, `schemaVersion` (≤ 2; più recente = rifiutato), checksum FNV; i pasti di forma non valida vengono scartati e contati;
+  - **Unisci**: aggiunge solo pasti (per `id`), preferiti (per alimento), ricette (per `id`) e prodotti (per EAN) mancanti; non modifica nulla di esistente; ripeterlo non aggiunge doppioni;
+  - **Sostituisci**: solo con checksum corretto, doppio tocco, e solo dopo aver salvato `carbo_prerestore` (se lo spazio non basta non sostituisce);
+  - "Riporta i dati a prima del ripristino" (doppio tocco) rimette `carbo` e `carbo_lib` della copia;
+  - libreria di una versione più recente: si ripristinano solo i pasti.
+- **Storage persistente**: `navigator.storage.persisted()` all'avvio, `persist()` dopo il primo pasto salvato; messaggio "protetta / non protetta" in Dati. ❓ Su iOS la concessione dipende dal sistema (di solito serve l'app installata in Home).
+- **Calendario** nel Diario: mese corrente con totale del giorno (senza colori di giudizio), mesi precedenti, giorni futuri disattivati; toccare un giorno filtra lo storico, "Mostra tutti i giorni" toglie il filtro; funziona insieme alla ricerca.
+- **Copia pasto**: aprendo un pasto salvato compare "Copia come nuovo pasto": il piatto diventa un pasto nuovo con l'ora attuale, da controllare e salvare. L'originale non cambia.
+- **CSV**: Altro → Dati → "Esporta CSV"; colonne Data, Ora, Pasto, Alimento, Quantità, Unità, CHO per 100, CHO alimento, CHO pasto, ID pasto.
+- Verifiche (localhost, dati di prova con 4 pasti):
+  - JSON non valido e backup "più recente" rifiutati con messaggio;
+  - Unisci: +1 pasto, pasto illeggibile ignorato, 4 pasti esistenti identici, +1 preferito; seconda unione: 0 aggiunte;
+  - checksum alterato: avviso e niente "Sostituisci";
+  - Sostituisci: primo tocco non cambia nulla; dopo il secondo restano 1 pasto e l'obiettivo del backup; copia di sicurezza identica ai dati precedenti; "Riporta" li rimette **identici byte per byte**;
+  - calendario: 4 giorni con totale, filtro su un giorno, giorno vuoto, ritorno a tutti, mese precedente, mese successivo disattivato;
+  - copia di un pasto del 14/11: nuovo pasto oggi con gli stessi alimenti e lo stesso totale (48,5 g), originale invariato;
+  - CSV: intestazione + 6 righe per 6 alimenti, decimali con virgola;
+  - motore AI: hash `5a9885b0`, 133,1 g, `gemini-2.5-flash-lite`;
+  - nessun errore in console; 375 px senza scorrimento orizzontale; `git diff` su `beta/js/engine` e sui file di produzione vuoto;
+  - dati di prova riportati allo stato iniziale.
+- **IndexedDB — decisione aperta.** La produzione v1 legge solo `localStorage["carbo"]`, condiviso con la beta. Spostare i pasti in IndexedDB prima della promozione renderebbe invisibili alla v1 i pasti registrati con la beta. Proposta: lasciare `localStorage` come archivio principale fino alla promozione (Fase 5) e usare IndexedDB solo come copia di sicurezza automatica; la migrazione vera insieme alla promozione. Serve l'approvazione dell'utente.
 
 ## 5. Interfaccia
 
 - Viste (`beta/index.html`):
   - `#v-oggi`: totale del giorno, obiettivo, avviso promemoria, pasti, pasti mancanti.
-  - `#v-diario`: storico con ricerca.
+  - `#v-diario`: calendario mensile `#cal` + storico con ricerca.
   - `#v-altro`: Alimenti (pannelli `#p-fav`, `#p-rcp`), Promemoria, Personalizzazione, Analisi AI, Dati, Applicazione (pannello `#p-src` Fonti dei dati).
 - Piatto: le voci del catalogo hanno l'etichetta di fonte (`.tag.src`) e i chip delle porzioni (`.chips`/`.chip`). Toccare un chip imposta 1 porzione e passa al conteggio a pezzi; i grammi restano modificabili.
 - Pannello Aggiungi `#sheet`: tipo di pasto, Foto / Codice a barre, ricerca, piatto, salva come ricetta, totale e Salva. Su telefono si chiude trascinando verso il basso; da 768 px in su è una finestra modale.
@@ -115,15 +148,16 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 
 - Roadmap e percentuali: vedi §10.
 - Completato: Fasi 0–3 (audit; moduli + export; preferiti/recenti/ricette; barcode + promemoria) e i pezzi/porzioni per i prodotti.
-- Fase D: catalogo USDA integrato e verificato nel browser (§9.10). Resta solo CREA, bloccato.
-- Alpha.5 pubblicata il 16/11/2026 (commit `c83e149`): online il catalogo si carica (9 voci), c'è la pagina Fonti, nessun errore in console.
+- Fase D: catalogo USDA (§9.10) e porzioni LARN (§9.11) integrati. Resta solo CREA, bloccato.
+- Pubblicate: alpha.5 (`c83e149`, 16/11/2026), alpha.6 (`1d5942a`, 17/11/2026).
+- Fase 4: 5 attività su 6 fatte e verificate nel browser in alpha.7, pubblicata il 17/11/2026 (§4.1). IndexedDB in attesa di decisione.
 - In attesa: test della beta su iPhone da parte dell'utente.
 - Problemi noti:
   1. Non verificati su iPhone reale: fotocamera/ZXing, apertura `.ics`, foglio di condivisione del backup, trascinamento del pannello, installazione in Home.
   2. Dati condivisi tra v1 e beta: le modifiche fatte nella beta sono reali.
   3. Il SW v1 (`sw.js`), quando si aggiorna, cancella tutte le cache diverse da `carbo-v8`, compresa quella della beta. Impatto: solo la riserva offline. Il SW 2.0 elimina solo le proprie versioni.
-  4. Nessun ripristino da backup: l'export esiste, l'import no.
-  5. Nessuna richiesta di storage persistente: su iOS, senza installazione in Home, i dati possono essere cancellati.
+  4. ~~Nessun ripristino da backup~~: risolto in alpha.7 (§4.1), da provare su iPhone (scelta del file da "File").
+  5. Storage persistente richiesto da alpha.7, ma su iOS la concessione non è garantita senza installazione in Home: i backup restano necessari.
   6. Due schede aperte si sovrascrivono lo stato (eredità v1).
   7. Open Food Facts spesso non ha il peso del pezzo: in quel caso lo inserisce l'utente, e viene ricordato.
   8. `app.js` (~47 KB) e `app.css` sono file unici, più grandi della suddivisione prevista nella Fase 0.
@@ -135,8 +169,8 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 ## 7. Prossimi interventi (priorità)
 
 1. Correggere quello che emerge dai test su iPhone.
-2. Ripristino da backup verificato (anteprima, Unisci/Sostituisci, backup automatico prima di sostituire) + `navigator.storage.persist()`.
-3. Fase 4: Diario a calendario, copia di un pasto da un altro giorno, export CSV, migrazione a IndexedDB con verifica e conservazione dei dati v1.
+2. Provare alpha.7 (Fase 4) su iPhone: è pubblicata.
+3. Fase 4, ultima attività: IndexedDB. Decisione dell'utente richiesta (§4.1): proposta = copia di sicurezza in IndexedDB ora, migrazione vera alla promozione.
 4. Fase 5: rifinitura e accessibilità, poi promozione della beta a produzione (sostituire la root con `beta/` togliendo le differenze "Beta"). ❓ Il contenuto preciso della Fase 5 non è documentato qui.
 5. Facoltativo: suite di regressione del motore AI nel repo.
 6. Fase D: provare alpha.6 su iPhone (catalogo USDA e porzioni LARN); contattare CREA-AN per i diritti di riuso. Eventuale ampliamento della selezione USDA (solo alimenti "neutri" assenti dal DB).
@@ -372,12 +406,12 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 | 3 Barcode e promemoria | ✅ scanner · ✅ OFF + prodotti ricordati · ✅ pezzi/porzioni · ✅ avviso in-app · ✅ `.ics` | Completata (browser) | 100% (5/5) |
 | V Validazione iPhone | ⬜ installazione in Home · ⬜ fotocamera/ZXing · ⬜ `.ics` · ⬜ condivisione backup · ⬜ trascinamento pannello | In attesa dell'utente | 0% (0/5) |
 | D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ⛔ catalogo CREA | In corso (resta solo CREA, bloccato) | 92% (12/13) |
-| 4 Dati e Diario | ⬜ ripristino verificato · ⬜ `storage.persist` · ⬜ calendario · ⬜ copia pasto · ⬜ export CSV · ⬜ IndexedDB | Pianificata | 0% (0/6) |
+| 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ⬜ IndexedDB (decisione aperta) | In corso | 83% (5/6) |
 | 5 Rilascio | ⬜ rifinitura e accessibilità · ⬜ test finale · ⬜ promozione di `beta/` in produzione | Pianificata | 0% (0/3) |
 
-**Complessivo: 28/43 attività = 65%.**
+**Complessivo: 33/43 attività = 77%.**
 
-- Fase attuale: **D – Database alimenti**, 92%: tutto fatto tranne CREA, che è bloccato. In parallelo, V attende i test dell'utente.
+- Fase attuale: **4 – Dati e Diario**, 83%: resta IndexedDB, in attesa di decisione. D è ferma al 92% (CREA bloccato); V attende i test dell'utente.
 - Bloccato:
   - ⛔ catalogo CREA, finché non sono chiariti i diritti di riuso (serve contattare CREA-AN);
   - V dipende dall'utente.
@@ -385,9 +419,10 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
   - la parte CREA del catalogo dipende solo dai diritti di riuso (regola e struttura pronte: `cid` `crea:<codice>`);
   - la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. test di alpha.6 su iPhone (pubblicata il 17/11/2026);
-  2. Fase 4: ripristino da backup verificato + `navigator.storage.persist()` (proteggono i dati prima di IndexedDB).
+  1. test di alpha.7 su iPhone (pubblicata; ripristino da "File", CSV, calendario);
+  2. decidere su IndexedDB (§4.1), poi Fase 5.
 
 ### Registro sessioni
 - 16/11/2026: Fasi 0–3; beta pubblicata in `/carbo/beta/`; pezzi/porzioni; report creato; audit del DB alimenti; fattibilità USDA (script + 13 candidati + confronti); regola CREA decisa: amido + zuccheri; catalogo USDA (9 voci) integrato in ricerca, chip porzioni, pagina Fonti, verificato nel browser; alpha.5 pubblicata (commit `c83e149`).
-- 17/11/2026: porzioni standard LARN 2014 per 62 voci del DB (pulsanti, mai automatici), verificate nel browser; alpha.6 pubblicata.
+- 17/11/2026: porzioni standard LARN 2014 per 62 voci del DB (pulsanti, mai automatici), verificate nel browser; alpha.6 pubblicata (commit `1d5942a`).
+- 17/11/2026: Fase 4 al 83% — ripristino da backup (anteprima, Unisci, Sostituisci con copia di sicurezza, annullamento), storage persistente, calendario nel Diario, copia pasto, export CSV; verificati nel browser; alpha.7 pubblicata. IndexedDB rinviato per decisione.
