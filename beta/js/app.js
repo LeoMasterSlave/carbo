@@ -1129,7 +1129,7 @@ function applyTheme(t){
   const r=document.documentElement;
   if(t==="light"||t==="dark")r.dataset.theme=t;else delete r.dataset.theme;
   const dark=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelectorAll("meta[name=theme-color]").forEach(m=>{m.content=t==="system"?(m.media.includes("dark")?"#191816":"#F4EFE6"):(dark?"#191816":"#F4EFE6")});
+  document.querySelectorAll("meta[name=theme-color]").forEach(m=>{m.content=t==="system"?(m.media.includes("dark")?"#181614":"#F5F0E8"):(dark?"#181614":"#F5F0E8")});
 }
 $("theme").onchange=e=>{const t=e.target.value;try{localStorage.setItem("carbo_theme",t)}catch(x){}applyTheme(t)};
 
