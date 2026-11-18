@@ -102,6 +102,27 @@ input[type=search]{-webkit-appearance:none;appearance:none}
 .bar i:nth-child(2){opacity:.72}.bar i:nth-child(3){opacity:.52}.bar i:nth-child(4){opacity:.36}.bar i:nth-child(n+5){opacity:.26}
 .bar b{flex:1 1 0;background:transparent}
 .meta{display:flex;justify-content:space-between;gap:var(--s3);margin-top:var(--s2);font-size:.765rem;color:var(--mut)}
+/* Oggi: ultimi 7 giorni, colonne neutre, oggi con l'accento */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;height:112px;margin-top:var(--s4)}
+.wk{display:grid;grid-template-rows:auto 1fr auto;justify-items:center;align-items:end;min-width:0}
+.wk i{display:block;width:100%;max-width:28px;min-height:0;background:var(--line-strong);border-radius:4px 4px 2px 2px;align-self:end}
+.wk.now i{background:var(--acc)}
+.wk .wv{font-size:.647rem;color:var(--mut);font-variant-numeric:tabular-nums;min-height:1.2em}
+.wk .wd{font-size:.647rem;color:var(--mut);margin-top:4px}
+.wk.now .wd,.wk.now .wv{color:var(--ink);font-weight:600}
+.week-f{margin:var(--s2) 0 0;font-size:.765rem;color:var(--mut)}
+/* azioni rapide e pasti da rifare */
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s2);margin:var(--s4) 0 0}
+.qa{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:var(--s2) 2px;border:1px solid var(--line-strong);border-radius:var(--r-md);background:var(--elev);font:500 .765rem var(--sans);color:var(--ink);transition:transform .16s var(--ease)}
+.qa svg{color:var(--acc)}
+.qa:active{transform:scale(.96)}
+.sub{font:600 .706rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:var(--s5) 0 var(--s1)}
+.ag{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) 0;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.ag:active{background:var(--fill)}
+.agn{flex:1;min-width:0;display:grid}
+.agn b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agn small{font-size:.765rem;color:var(--mut)}
+.agv{white-space:nowrap;color:var(--mut)}.agv .num{font-size:1.176rem;color:var(--ink)}
 
 .meal{display:grid;grid-template-columns:1fr auto 44px;column-gap:var(--s3);align-items:center;padding:var(--s3) 0;border-bottom:1px solid var(--line)}
 .meal .mh{grid-column:1;display:flex;align-items:baseline;gap:var(--s2)}

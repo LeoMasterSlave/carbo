@@ -75,17 +75,54 @@ function render(){
   const tot=tm.reduce((s,m)=>s+m.total,0);
   $("tot").textContent=Math.round(tot);
   if(document.activeElement!==$("goal"))$("goal").value=state.goal||"";
-  const max=Math.max(state.goal||0,tot,1);
-  $("bar").innerHTML=tm.map(m=>`<i style="flex:${m.total} 1 0"></i>`).join("")+(max>tot?`<b style="flex:${max-tot} 1 0"></b>`:"");
+  // l'obiettivo è facoltativo (Impostazioni): compare solo se impostato
   const left=state.goal?Math.round(state.goal-tot):null;
-  $("goalbar").textContent=left===null?"Nessun obiettivo impostato":left>=0?`Restano ${left} g`:`Oltre di ${-left} g`;
+  $("goalbar").textContent=left===null?"":left>=0?`Restano ${left} g`:`Oltre di ${-left} g`;
   $("mcount").textContent=tm.length?`${tm.length} ${tm.length===1?"pasto":"pasti"}`:"";
-  $("bar").setAttribute("aria-label",tm.length?`${Math.round(tot)} grammi in ${tm.length} ${tm.length===1?"pasto":"pasti"}${state.goal?`, obiettivo ${state.goal} grammi`:""}`:"Nessun pasto");
+  renderWeek(now);renderAgain(today);
   renderNudge();
   $("meals").innerHTML=tm.length?tm.map(mealRow).join(""):'<p class="empty">Ancora niente oggi.</p>';
   const miss=TYPES.filter(t=>!tm.some(m=>m.type===t));
   $("slots").innerHTML=miss.length?`<span class="slots-l">Da registrare</span>`+miss.map(t=>`<button class="slot" type="button" data-add="${t}">${I_PLUS_S}${t}</button>`).join(""):"";
   renderHist();
+}
+// ---- Oggi: ultimi 7 giorni (totali neutri, nessun giudizio; oggi in evidenza)
+const WD1=["D","L","M","M","G","V","S"];
+function renderWeek(now){
+  const tot={};state.meals.forEach(m=>{const k=tdKey(m.ts);tot[k]=(tot[k]||0)+m.total});
+  const days=[];for(let i=6;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);days.push({d,k:tdKey(d),v:tot[tdKey(d)]||0})}
+  const max=Math.max(1,...days.map(x=>x.v)),withMeals=days.filter(x=>x.v>0),past=days.slice(0,6).filter(x=>x.v>0);
+  $("week").innerHTML=days.map((x,i)=>`<div class="wk${i===6?" now":""}"><span class="wv">${x.v?Math.round(x.v):""}</span><i style="height:${x.v?Math.max(4,Math.round(x.v/max*100)):0}%"></i><span class="wd">${i===6?"Oggi":WD1[x.d.getDay()]}</span></div>`).join("");
+  $("week").setAttribute("aria-label","Ultimi 7 giorni: "+days.map((x,i)=>(i===6?"oggi":x.d.toLocaleDateString("it-IT",{weekday:"long"}))+" "+(x.v?Math.round(x.v)+" grammi":"nessun pasto")).join(", "));
+  const avg=past.length?Math.round(past.reduce((s,x)=>s+x.v,0)/past.length):null;
+  $("weekF").textContent=avg===null?"Gli ultimi 7 giorni compariranno qui man mano che registri i pasti.":`Media dei giorni precedenti: ${avg} g${past.length<6?` (su ${past.length} con pasti)`:""}`;
+  $("week").classList.toggle("hide",!withMeals.length);
+}
+// ---- Oggi: "Rifai in un tocco" = pasti dei giorni precedenti che ripeti più spesso (stessi alimenti e quantità)
+const mealSig=m=>m.items.map(i=>i.n.toLowerCase()+"|"+Math.round(i.g)+"|"+(i.u||"g")).sort().join(";");
+function againList(today){
+  const groups=new Map();
+  for(const m of state.meals){if(tdKey(m.ts)===today||!m.items.length)continue;const s=mealSig(m),g=groups.get(s);if(g){g.n++;if(m.ts>g.m.ts)g.m=m}else groups.set(s,{n:1,m})}
+  return [...groups.values()].sort((a,b)=>b.n-a.n||b.m.ts-a.m.ts).slice(0,3);
+}
+function againLabel(m){const a=m.items[0].n;return m.items.length===1?a:`${a} + ${m.items.length-1} ${m.items.length===2?"altro":"altri"}`}
+function renderAgain(today){
+  const L=againList(today);$("againBox").classList.toggle("hide",!L.length);
+  $("again").innerHTML=L.map(({n,m})=>`<button class="ag" type="button" data-again="${m.id}"><span class="agn"><b>${esc(againLabel(m))}</b><small>${esc(m.type)} · ${n>1?`${n} volte`:new Date(m.ts).toLocaleDateString("it-IT",{weekday:"long"})}</small></span><span class="agv"><span class="num">${Math.round(m.total)}</span> g</span></button>`).join("");
+}
+function repeatMeal(id){
+  const m=state.meals.find(x=>x.id===id);if(!m)return;
+  if(cur.length){openSheet();toast("Prima salva o svuota il piatto in corso");return}
+  cur=m.items.map(itemFromSaved);showBlock=false;setEditing(null);renderCur();openSheet(defaultType());
+  toast("Pasto copiato nel piatto: controlla e tocca Salva");
+}
+// azioni rapide: aprono il pannello Aggiungi già sulla funzione scelta (nello stesso tocco, come richiede Safari)
+function quick(k){
+  openSheet();
+  if(k==="photo")$("photo").click();
+  else if(k==="scan")openScanner();
+  else if(k==="desc")toggleDesc(true);
+  else if(k==="search")$("q").focus();
 }
 // ---- calendario del Diario: un mese alla volta; toccare un giorno filtra lo storico
 let calM=null,calDay=null;
@@ -283,6 +320,8 @@ document.body.addEventListener("click",e=>{
   }
   const pn=e.target.closest("[data-panel]");if(pn)showPanel(pn.dataset.panel);
   const ad=e.target.closest("[data-add]");if(ad)openSheet(ad.dataset.add);
+  const ag=e.target.closest("[data-again]");if(ag)repeatMeal(ag.dataset.again);
+  const qk=e.target.closest("[data-quick]");if(qk)quick(qk.dataset.quick);
   const r=e.target.closest("[data-rm]");if(r){cur.splice(+r.dataset.rm,1);renderCur()}
   // dettagli dell'alimento (solo interfaccia: "more" non viene salvato nel pasto)
   // nome toccato: alimento ridotto → si riapre tutto; aperto → si richiude

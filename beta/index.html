@@ -21,12 +21,20 @@
   <h1 class="sr">Oggi</h1>
   <div class="notice hide" id="safeBox" role="alert"><p id="safeTxt"></p><div class="acts2"><button class="pri" type="button" id="safeYes">Recupera</button><button class="sec-btn" type="button" id="safeNo">Inizia da zero</button></div></div>
   <div class="hero">
-    <div class="hrow"><p class="dateline" id="date"></p>
-      <label class="goal">Obiettivo <input id="goal" type="number" inputmode="numeric" placeholder="—" aria-label="Obiettivo giornaliero in grammi"><span>g</span></label></div>
+    <div class="hrow"><p class="dateline" id="date"></p></div>
     <div class="big"><span class="num" id="tot">0</span><span class="u">g</span><span class="lbl">di carboidrati oggi</span></div>
-    <div class="bar" id="bar" role="img" aria-label="Nessun pasto"></div>
-    <div class="meta"><span id="goalbar"></span><span id="mcount"></span></div>
+    <div class="meta"><span id="mcount"></span><span id="goalbar"></span></div>
+    <div class="week" id="week" role="img" aria-label=""></div>
+    <p class="week-f" id="weekF"></p>
   </div>
+  <div class="quick" role="group" aria-label="Aggiungi un pasto">
+    <button class="qa" type="button" data-quick="photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Foto</button>
+    <button class="qa" type="button" data-quick="scan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Codice</button>
+    <button class="qa" type="button" data-quick="desc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Descrivi</button>
+    <button class="qa" type="button" data-quick="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Cerca</button>
+  </div>
+  <div class="again hide" id="againBox"><h2 class="sub">Rifai in un tocco</h2><div id="again"></div></div>
+  <h2 class="sub" id="todayH">Oggi</h2>
   <div class="nudge hide" id="nudge" role="status"><span id="nudgeT"></span><button class="txt ink" id="nudgeAdd" type="button">Aggiungi</button><button class="ibtn" id="nudgeX" type="button" aria-label="Non oggi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <div id="meals"></div>
   <div class="slots" id="slots"></div>
@@ -60,6 +68,8 @@
     <p class="msg" id="remMsg">Con l'app aperta, Carbo ti ricorda con discrezione i pasti attivi non ancora registrati. Per una notifica anche ad app chiusa, aggiungi i promemoria al Calendario del telefono: li modifichi o elimini da lì.</p>
   </div>
   <div class="group"><h2>Personalizzazione</h2>
+    <div class="list" style="margin-bottom:var(--s3)"><label class="row"><span>Obiettivo giornaliero</span><input id="goal" type="number" inputmode="numeric" min="0" placeholder="Nessuno" aria-label="Obiettivo giornaliero in grammi"></label></div>
+    <p class="msg" style="margin:-4px 0 var(--s3)">Facoltativo. Se lo imposti, Oggi mostra quanti grammi restano.</p>
     <fieldset class="seg s3" id="theme"><legend class="sr">Tema</legend>
       <label><input type="radio" name="theme" value="system"><span>Sistema</span></label>
       <label><input type="radio" name="theme" value="light"><span>Chiaro</span></label>
