@@ -14,6 +14,22 @@ let cur=[];
 let state={meals:[],goal:null};
 let lib=loadLib();
 const persistLib=()=>{if(!saveLib(lib)&&isReadOnly())toast("Libreria creata da una versione più recente: modifiche non salvate")};
+// Correzioni dell'utente alle voci del database interno ("db:<nome>" in lib.foodEdits).
+// fooddb.js e ai.js restano invariati: la correzione si applica DOPO, al valore usato nel piatto
+// (ricerca, cambio voce, crudo/cotto, risultati di foto e descrizioni che riconoscono la voce).
+const dbEditOf=n=>cleanFoodEdit((lib.foodEdits||{})["db:"+n]);
+const dbC=f=>{const e=dbEditOf(f.n);return e&&e.c100!=null?e.c100:f.c};
+function fixDb(i){
+  if(!i||!i.db)return i;
+  const e=dbEditOf(i.db);if(!e)return i;
+  if(e.c100!=null)i.c100=e.c100;
+  if(e.n&&i.n===i.db)i.n=e.n;
+  return i;
+}
+const dbFoodView=f=>{const e=dbEditOf(f.n);return{cid:"db:"+f.n,n:e&&e.n||f.n,c100:dbC(f),u:f.u||"g",a:f.a,units:portionsFor(f.n)||[],...(e&&e.hidden?{hidden:true}:{}),...(e?{edited:true}:{})}};
+const allFoods=()=>[...DB.map(dbFoodView),...catAll()];
+const foodByCid=cid=>{if(!cid.startsWith("db:"))return catByCid(cid);const f=dbByName(cid.slice(3));return f?dbFoodView(f):null};
+const foodOrig=cid=>{if(!cid.startsWith("db:"))return catOriginal(cid);const f=dbByName(cid.slice(3));return f?{n:f.n,c100:f.c,u:f.u||"g",units:portionsFor(f.n,true)||[]}:null};
 let editId=null;
 let view="oggi";
 const VIEWS=["oggi","diario","altro"];
@@ -271,7 +287,7 @@ document.body.addEventListener("click",e=>{
   }
   const pu=e.target.closest("[data-pzu]");if(pu){const it=cur[+pu.dataset.pzu];it.pzG=!it.pzG;it.hold=true;renderCur();const f=document.querySelector(`[data-pn="${pu.dataset.pzu}"],[data-g="${pu.dataset.pzu}"]`);if(f)f.focus()}
   const ok=e.target.closest("[data-ok]");if(ok){const it=cur[+ok.dataset.ok];it.ask=[];it.cand=[];relevel(it);renderCur()}
-  const alt=e.target.closest("[data-alt]");if(alt){const it=cur[+alt.dataset.alt],f=dbByName(alt.dataset.n);if(f){const u0=it.u||"g";it.n=f.n;it.c100=f.c;it.db=f.n;it.st=f.st||null;it.prov=!!f.p;it.cand=[];it.ask=it.ask.filter(a=>a.k==="weight");if(f.cmp)it.ask.push({k:"cmp",t:f.nt||"Piatto composto"});setUnit(it,f,u0);it.lvl="media";relevel(it);renderCur()}}
+  const alt=e.target.closest("[data-alt]");if(alt){const it=cur[+alt.dataset.alt],f=dbByName(alt.dataset.n);if(f){const u0=it.u||"g";it.n=f.n;it.c100=f.c;it.db=f.n;it.st=f.st||null;it.prov=!!f.p;it.cand=[];it.ask=it.ask.filter(a=>a.k==="weight");if(f.cmp)it.ask.push({k:"cmp",t:f.nt||"Piatto composto"});setUnit(it,f,u0);it.lvl="media";relevel(it);fixDb(it);renderCur()}}
   const g=e.target.closest("[data-go]");if(g)go(g.dataset.go);
 });
 function setWeight(it){if(it.g>0)it.ask=(it.ask||[]).filter(a=>a.k!=="weight"),relevel(it)}
@@ -289,7 +305,7 @@ $("items").addEventListener("change",e=>{
   if(gk!=null){const it=cur[gk];if(it){it.hold=false;it.more=false}renderCur();return}
   const k=e.target.dataset.raw;if(k==null)return;
   // crudo/cotto: una porzione standard dello stato precedente non vale più per il nuovo
-  const it=cur[k],had=unitsOf(it);it.hold=true;swapState(it);
+  const it=cur[k],had=unitsOf(it);it.hold=true;swapState(it);fixDb(it);
   if(it.pz&&had&&had.some(x=>x.t===it.pz.t&&x.w===it.pz.w)){delete it.pz;it.pzG=false}
   renderCur();
 });
@@ -319,8 +335,9 @@ function renderSug(){
   const pr=Object.entries(lib.products||{}).filter(([,p])=>p&&p.n&&fold(productLabel(p)).includes(qf)).slice(0,4)
     .map(([ean,p])=>`<button class="sug" type="button" data-pk="${esc(ean)}"><span>${esc(productLabel(p))}</span><small>${fmt(p.c100)} g/100 ${p.u||"g"}${srcTag(p.src==="off"?"off":"manual")}</small></button>`);
   // DB del motore: stessa ricerca di prima, solo lettura
-  const dbAll=DB.filter(f=>f.n.toLowerCase().includes(q)||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn)));
-  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>`<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(f.n)}</span><small>${f.c} g/100 ${f.u||"g"}${f.p?" · provv.":""}${srcTag("db")}</small></button>`);
+  // correzioni dell'utente (lib.foodEdits "db:<nome>"): nome e valore mostrati, voci nascoste escluse
+  const dbAll=DB.filter(f=>{const e=dbEditOf(f.n);if(e&&e.hidden)return false;return f.n.toLowerCase().includes(q)||(e&&e.n&&e.n.toLowerCase().includes(q))||[f.n,...(f.a||[])].some(p=>qn.length&&isPre(norm(p),qn))});
+  const db=dbAll.map((f,k)=>({f,k})).sort((a,b)=>rank(a.f)-rank(b.f)||a.k-b.k).map(x=>x.f).slice(0,6).map(f=>{const e=dbEditOf(f.n);return `<button class="sug" type="button" data-f="${DB.indexOf(f)}"><span>${esc(e&&e.n||f.n)}</span><small>${fmt(dbC(f))} g/100 ${f.u||"g"}${f.p&&!e?" · provv.":""}${srcTag("db")}${e?" · modificato":""}</small></button>`});
   // catalogo esterno: dopo il DB; una voce con lo stesso nome e valore simile (±10%) a una del DB non si ripete
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
@@ -341,7 +358,7 @@ const unitsFor=s=>{const c=s.cid&&catByCid(s.cid);return c&&c.c100===s.c100?c.un
 function unitsOf(i){
   if(i.units&&i.units.length)return i.units;
   if(i.rid||!i.db)return null;
-  const d=dbByName(i.db),p=d&&d.c===i.c100&&(d.u||"g")===(i.u||"g")&&portionsFor(d.n);
+  const d=dbByName(i.db),p=d&&(d.c===i.c100||dbC(d)===i.c100)&&(d.u||"g")===(i.u||"g")&&portionsFor(d.n);
   return p&&p.length?p:null;
 }
 const askPortion=i=>{if(unitsOf(i)&&!(i.g>0))i.ask=(i.ask||[]).map(a=>a.k==="weight"?{...a,t:"Scegli una porzione o inserisci il peso"}:a);return i};
@@ -350,7 +367,8 @@ $("q").oninput=renderSug;
 function itemFromFood(f,g){
   const d=f.ref&&dbByName(f.ref);
   let i;
-  if(d&&d.c===f.c100&&(d.u||"g")===(f.u||"g")){i=fromDB(d);i.n=f.n}
+  // snapshot: il preferito/recente tiene il suo valore anche se la voce del DB è stata corretta dopo
+  if(d&&(d.c===f.c100||dbC(d)===f.c100)&&(d.u||"g")===(f.u||"g")){i=fromDB(d);i.n=f.n;i.c100=f.c100}
   else i={n:f.n,g:0,u:f.u||"g",c100:f.c100,ask:[{k:"weight",t:"Inserisci il peso",b:1}],cand:[]};
   if(f.ean)i.ean=f.ean;
   if(f.cid){i.cid=f.cid;const u=unitsFor(f);if(u)i.units=u}
@@ -364,7 +382,7 @@ function addToPlate(i,label){
 }
 $("sug").onclick=e=>{
   const s=e.target.closest("[data-f]");
-  if(s){const f=DB[+s.dataset.f];cur.push(askPortion(fromDB(f)));$("q").value="";renderSug();renderCur();return}
+  if(s){const f=DB[+s.dataset.f];cur.push(askPortion(fixDb(fromDB(f))));$("q").value="";renderSug();renderCur();return}
   const c=e.target.closest("[data-c]");
   if(c){const f=catByCid(c.dataset.c);if(f){cur.push(itemFromCat(f));$("q").value="";renderSug();renderCur()}return}
   const pk=e.target.closest("[data-pk]");
@@ -409,7 +427,7 @@ $("save").onclick=()=>{
 function itemFromSaved(s){
   const i={n:s.n,g:s.g,u:s.u||"g",c100:s.c100,ask:[],cand:[]};
   const d=s.ref&&dbByName(s.ref);
-  if(d&&d.c===s.c100){i.db=d.n;i.st=d.st||null;i.prov=!!d.p}
+  if(d&&(d.c===s.c100||dbC(d)===s.c100)){i.db=d.n;i.st=d.st||null;i.prov=!!d.p}
   if(s.rid)i.rid=s.rid;
   if(s.ean)i.ean=s.ean;
   if(s.cid){i.cid=s.cid;const u=unitsFor(s);if(u)i.units=u}
@@ -478,7 +496,7 @@ async function analyze(){
     else{
       // sostituisce solo le voci della foto precedente (le voci da descrizione restano)
       cur=cur.filter(i=>!(i.ai&&i.via!=="desc"));
-      items.forEach(i=>{i.via="photo";cur.push(i)});showBlock=false;
+      items.forEach(i=>{fixDb(i);i.via="photo";cur.push(i)});showBlock=false;
       startChat({kind:"photo",hint,qa:[],round:0},items);
       renderCur();
       const low=cur.filter(i=>i.ai&&i.ask.some(a=>a.b)).length,worst=Math.min(...cur.filter(i=>i.ai).map(i=>LV[i.conf]||2));
@@ -516,7 +534,7 @@ async function describe(){
     if(!items.length){setMsg("Non riconosco cibo in questa descrizione. Prova a essere più preciso o aggiungi a mano.")}
     else{
       const batch="d"+Date.now();
-      items.forEach(i=>{i.via="desc";i.batch=batch;cur.push(i)});showBlock=false;
+      items.forEach(i=>{fixDb(i);i.via="desc";i.batch=batch;cur.push(i)});showBlock=false;
       startChat({kind:"desc",text:t,batch,qa:[],round:0},items);
       renderCur();
       const low=items.filter(i=>i.ask.some(a=>a.b)).length;
@@ -587,11 +605,11 @@ async function reestimate(){
       const qa=c.qa.filter(x=>x.a!=="Non lo so").map(x=>`${x.q} → ${x.a}`).join("; ");
       const hint=((c.hint?c.hint+". ":"")+"Risposte dell'utente alle tue domande: "+qa).slice(0,700);
       ({items}=await analyzePhoto(photoBlob,hint,stage));
-      if(items.length){cur=cur.filter(i=>!(i.ai&&i.via!=="desc"));items.forEach(i=>{i.via="photo";cur.push(i)})}
+      if(items.length){cur=cur.filter(i=>!(i.ai&&i.via!=="desc"));items.forEach(i=>{fixDb(i);i.via="photo";cur.push(i)})}
     }else{
       const {describeMeal}=await import("./engine/describe.js");
       ({items}=await describeMeal(c.text,stage,c.qa.filter(x=>x.a!=="Non lo so")));
-      if(items.length){cur=cur.filter(i=>i.batch!==c.batch);items.forEach(i=>{i.via="desc";i.batch=c.batch;cur.push(i)})}
+      if(items.length){cur=cur.filter(i=>i.batch!==c.batch);items.forEach(i=>{fixDb(i);i.via="desc";i.batch=c.batch;cur.push(i)})}
     }
     clearInterval(tick);busy=false;
     if(!items.length){chat.log.push({ai:1,t:"Non sono riuscito ad aggiornare: lascio la stima di prima."});chat.k=chat.qs.length;renderChat();return}
@@ -737,7 +755,7 @@ function showPanel(p){
 const FOOD_MAX=30;
 const editOf=cid=>(lib.foodEdits||{})[cid]||null;
 function foodRowHTML(f,open){
-  const o=catOriginal(f.cid)||f,e=editOf(f.cid),u=f.u||"g",src=SRC_LABEL[srcOf(f.cid)]||"";
+  const o=foodOrig(f.cid)||f,e=editOf(f.cid),u=f.u||"g",src=SRC_LABEL[srcOf(f.cid)]||"";
   const st=f.hidden?"nascosto":f.edited?"corretto":"";
   const units=(f.units||[]).slice(0,6);
   const urow=(x,k)=>`<div class="two urow"><label class="fld2"><span>Porzione</span><input data-fu="t" data-k="${k}" value="${esc(x.t)}" maxlength="40" placeholder="es. 1 fetta"></label><label class="fld2"><span>Peso (${u})</span><input data-fu="w" data-k="${k}" type="number" inputmode="decimal" min="0" max="2000" step="0.1" value="${x.w}"></label></div>`;
@@ -756,8 +774,8 @@ function foodRowHTML(f,open){
 function renderFoodPanel(){
   if(panel!=="food")return;
   const q=fold($("fq").value.trim()),only=$("fOnly").getAttribute("aria-pressed")==="true";
-  const all=catAll();
-  let list=only?all.filter(f=>editOf(f.cid)):q?all.filter(f=>fold(f.n).includes(q)||fold((catOriginal(f.cid)||f).n).includes(q)||(f.a||[]).some(a=>fold(a).includes(q))):[];
+  const all=allFoods();
+  let list=only?all.filter(f=>editOf(f.cid)):q?all.filter(f=>fold(f.n).includes(q)||fold((foodOrig(f.cid)||f).n).includes(q)||(f.a||[]).some(a=>fold(a).includes(q))):[];
   if(q&&only)list=list.filter(f=>fold(f.n).includes(q));
   list.sort((a,b)=>(fold(a.n).startsWith(q)?0:1)-(fold(b.n).startsWith(q)?0:1)||a.n.length-b.n.length);
   const op=new Set([...document.querySelectorAll("#foodList .lrow[open]")].map(d=>d.dataset.cid));
@@ -778,7 +796,7 @@ $("fq").addEventListener("input",renderFoodPanel);
 $("fOnly").onclick=()=>{const b=$("fOnly");b.setAttribute("aria-pressed",String(b.getAttribute("aria-pressed")!=="true"));renderFoodPanel()};
 $("foodList").addEventListener("click",e=>{
   const row=e.target.closest(".lrow");if(!row)return;
-  const cid=row.dataset.cid,f=catByCid(cid),o=catOriginal(cid);if(!f||!o)return;
+  const cid=row.dataset.cid,f=foodByCid(cid),o=foodOrig(cid);if(!f||!o)return;
   const m=row.querySelector("[data-fmsg]"),err=t=>{m.className="msg err";m.textContent=t};
   if(e.target.closest("[data-fadd]")){
     const box=row.querySelector("[data-units]"),k=box.children.length;if(k>=6)return;

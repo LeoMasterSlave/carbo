@@ -5,7 +5,7 @@
 
 export const BACKUP_FORMAT = "carbo-backup";
 export const SCHEMA_VERSION = 2; // 2: aggiunta la libreria (preferiti, recenti, ricette)
-export const APP_VERSION = "2.0.0-alpha.16";
+export const APP_VERSION = "2.0.0-alpha.17";
 const LAST_KEY = "carbo_last_backup";
 
 export function checksum(str) {

@@ -86,7 +86,10 @@ export function loadPortions() {
   return porLoading;
 }
 // LARN prima, poi le porzioni del file con un peso diverso (porzioni alternative legittime).
-export const portionsFor = name => {
+// Correzioni dell'utente per le voci del database interno: chiave "db:<nome>". raw = senza correzioni.
+export const portionsFor = (name, raw) => {
+  const e = !raw && cleanEdit(edits["db:" + name]);
+  if (e && e.units) return e.units.length ? e.units.map(u => ({ ...u, l: "porzione", src: "mio" })) : null;
   const a = portions.get(name) || [], b = (fileDbPortions.get(name) || []).filter(x => !a.some(y => y.w === x.w));
   return a.length || b.length ? [...a, ...b] : null;
 };
