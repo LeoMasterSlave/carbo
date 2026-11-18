@@ -388,7 +388,7 @@ function setEditing(id){
 }
 // Copia di un pasto (anche di un altro giorno): il piatto resta, diventa un pasto nuovo da salvare ora.
 $("asNew").onclick=()=>{if(!editId)return;setEditing(null);setType(defaultType());renderCur();toast("Copia pronta: controlla e salva per aggiungerla a oggi")};
-function resetPlate(){cur=[];showBlock=false;photoBlob=null;setEditing(null);$("rform").classList.add("hide");$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";$("desc").value="";toggleDesc(false);renderCur()}
+function resetPlate(){cur=[];showBlock=false;photoBlob=null;setEditing(null);$("rform").classList.add("hide");$("shot").classList.add("hide");$("afterPick").classList.add("hide");$("pickBtn").classList.remove("hide");setMsg("");$("hint").value="";$("desc").value="";toggleDesc(false);closeChat();renderCur()}
 $("clear").onclick=resetPlate;
 $("save").onclick=()=>{
   if(!cur.length)return;
@@ -471,11 +471,15 @@ async function analyze(){
   const tick=setInterval(paint,500);
   try{
     stage("Preparo la foto…");
-    const {items}=await analyzePhoto(photoBlob,$("hint").value.trim(),stage);
+    closeChat();
+    const hint=$("hint").value.trim();
+    const {items}=await analyzePhoto(photoBlob,hint,stage);
     if(!items.length){setMsg("Non riconosco cibo in questa foto. Prova con un'altra o aggiungi a mano.")}
     else{
-      cur=cur.filter(i=>!i.ai);
-      items.forEach(i=>cur.push(i));showBlock=false;
+      // sostituisce solo le voci della foto precedente (le voci da descrizione restano)
+      cur=cur.filter(i=>!(i.ai&&i.via!=="desc"));
+      items.forEach(i=>{i.via="photo";cur.push(i)});showBlock=false;
+      startChat({kind:"photo",hint,qa:[],round:0},items);
       renderCur();
       const low=cur.filter(i=>i.ai&&i.ask.some(a=>a.b)).length,worst=Math.min(...cur.filter(i=>i.ai).map(i=>LV[i.conf]||2));
       setMsg(`Trovati ${items.length} ${items.length===1?"alimento":"alimenti"}. Confidenza complessiva ${worst===1?"bassa":worst===2?"media":"alta"}.${low?` ${low} ${low===1?"voce da confermare":"voci da confermare"}: controlla alimento e quantità.`:" Controlla comunque i valori qui sotto."}`,low?"":"ok");
@@ -506,11 +510,14 @@ async function describe(){
   const stage=s=>{base=s;paint()};
   const tick=setInterval(paint,500);paint();
   try{
+    closeChat();
     const {describeMeal}=await import("./engine/describe.js");
     const {items}=await describeMeal(t,stage);
     if(!items.length){setMsg("Non riconosco cibo in questa descrizione. Prova a essere più preciso o aggiungi a mano.")}
     else{
-      items.forEach(i=>cur.push(i));showBlock=false;
+      const batch="d"+Date.now();
+      items.forEach(i=>{i.via="desc";i.batch=batch;cur.push(i)});showBlock=false;
+      startChat({kind:"desc",text:t,batch,qa:[],round:0},items);
       renderCur();
       const low=items.filter(i=>i.ask.some(a=>a.b)).length;
       setMsg(`Aggiunti ${items.length} ${items.length===1?"alimento":"alimenti"} dalla descrizione.${low?` ${low} ${low===1?"voce da confermare":"voci da confermare"}: controlla alimento e quantità.`:" Controlla comunque i valori qui sotto."}`,low?"":"ok");
@@ -521,6 +528,90 @@ async function describe(){
   finally{clearInterval(tick);busy=false;$("descGo").removeAttribute("aria-busy");$("dspin").classList.add("hide");$("descTxt").textContent="Stima i carboidrati"}
 }
 $("descGo").onclick=describe;
+
+// ---- mini chat: l'AI chiede poche cose (alimento, quantità); le risposte rifanno la stima.
+// Foto: le risposte vanno nell'indizio (analyzePhoto, ai.js invariato). Descrizione: passate a describeMeal.
+// Niente viene salvato: le voci restano nel piatto come prima, fino a "Salva pasto".
+let chat=null;
+const MAX_Q=3,MAX_ROUNDS=2;
+function questionsFor(items,asked){
+  const qs=[];
+  for(const i of items){
+    const q=i.ask.find(a=>a.k==="q");
+    if(q){qs.push(`${i.n}: ${q.t}`);continue}
+    // solo se è l'AI a non essere sicura (non per le ambiguità del confronto con il DB)
+    if(i.ask.some(a=>a.k==="food"&&/non riconosciuto/.test(a.t)))qs.push(`Cos'è di preciso “${i.n}”?`);
+    if(i.ask.some(a=>a.k==="weight"&&a.b))qs.push(`Quanto ne hai mangiato di “${i.n}”? (grammi, pezzi o misura)`);
+  }
+  return [...new Set(qs)].filter(q=>!asked.has(q)).slice(0,MAX_Q);
+}
+function startChat(ctx,items){
+  const asked=new Set((ctx.qa||[]).map(x=>x.q));
+  const qs=ctx.round<MAX_ROUNDS?questionsFor(items,asked):[];
+  if(!qs.length){closeChat();return}
+  chat={...ctx,qs,k:0,log:(chat&&chat.kind===ctx.kind&&ctx.round>0?chat.log:[]).concat(ctx.round>0?[{ai:1,t:"Ho aggiornato la stima. Ancora una cosa:"}]:[{ai:1,t:"Per essere più preciso:"}])};
+  renderChat();
+}
+function closeChat(){chat=null;$("chat").classList.add("hide");$("chatLog").innerHTML="";$("chatIn").value=""}
+function renderChat(wait){
+  if(!chat)return closeChat();
+  const lines=[...chat.log];
+  if(wait)lines.push({ai:1,t:wait,w:1});
+  else if(chat.k<chat.qs.length)lines.push({ai:1,t:chat.qs[chat.k]});
+  $("chatLog").innerHTML=lines.map(l=>`<p class="bub ${l.ai?"ai":"me"}${l.w?" wait":""}">${esc(l.t)}</p>`).join("");
+  $("chat").classList.remove("hide");
+  const dis=!!wait;$("chatIn").disabled=dis;$("chatSend").disabled=dis;$("chatSkip").disabled=dis;
+}
+function chatAnswer(a){
+  if(!chat||busy||chat.k>=chat.qs.length)return;
+  const q=chat.qs[chat.k];
+  chat.log.push({ai:1,t:q},{t:a});chat.qa.push({q,a});chat.k++;
+  $("chatIn").value="";
+  if(chat.k<chat.qs.length){renderChat();$("chatIn").focus();return}
+  // tutte le risposte "non lo so": niente da aggiornare
+  if(chat.qa.slice(-chat.qs.length).every(x=>x.a==="Non lo so")){chat.log.push({ai:1,t:"Va bene, lascio la stima così: controlla i valori qui sotto."});chat.k=chat.qs.length;renderChat();$("chatIn").disabled=true;$("chatSend").disabled=true;$("chatSkip").disabled=true;return}
+  reestimate();
+}
+async function reestimate(){
+  if(!chat||busy)return;
+  if(!getKey()){setMsg("Manca la chiave AI.","err");return}
+  const c=chat;busy=true;
+  let base="Aggiorno la stima…";const t0=Date.now();
+  const paint=()=>renderChat(base+" "+Math.round((Date.now()-t0)/1000)+" s");
+  const stage=s=>{base=s.replace("Riconosco gli alimenti…","Aggiorno la stima…").replace("Stimo i carboidrati…","Aggiorno la stima…");paint()};
+  const tick=setInterval(paint,500);paint();
+  try{
+    let items;
+    if(c.kind==="photo"){
+      if(!photoBlob)throw new Error("La foto non è più disponibile: scattala di nuovo.");
+      const qa=c.qa.filter(x=>x.a!=="Non lo so").map(x=>`${x.q} → ${x.a}`).join("; ");
+      const hint=((c.hint?c.hint+". ":"")+"Risposte dell'utente alle tue domande: "+qa).slice(0,700);
+      ({items}=await analyzePhoto(photoBlob,hint,stage));
+      if(items.length){cur=cur.filter(i=>!(i.ai&&i.via!=="desc"));items.forEach(i=>{i.via="photo";cur.push(i)})}
+    }else{
+      const {describeMeal}=await import("./engine/describe.js");
+      ({items}=await describeMeal(c.text,stage,c.qa.filter(x=>x.a!=="Non lo so")));
+      if(items.length){cur=cur.filter(i=>i.batch!==c.batch);items.forEach(i=>{i.via="desc";i.batch=c.batch;cur.push(i)})}
+    }
+    clearInterval(tick);busy=false;
+    if(!items.length){chat.log.push({ai:1,t:"Non sono riuscito ad aggiornare: lascio la stima di prima."});chat.k=chat.qs.length;renderChat();return}
+    showBlock=false;renderCur();
+    const tot=items.reduce((s,i)=>s+(i.g>0?i.g*i.c100/100:0),0);
+    setMsg(`Stima aggiornata: ${items.map(i=>i.n).join(", ")} · ${fmt(Math.round(tot*10)/10)} g di carboidrati. Controlla i valori qui sotto.`,"ok");
+    startChat({...c,round:c.round+1},items);
+    if(chat&&chat.round===c.round+1)return;
+    // nessuna nuova domanda: chiude con un riepilogo
+    chat={...c,qs:[],k:0,log:c.log.concat([{ai:1,t:"Fatto, stima aggiornata. Controlla i valori qui sotto."}])};renderChat();
+    $("chatIn").disabled=true;$("chatSend").disabled=true;$("chatSkip").disabled=true;
+  }catch(err){
+    clearInterval(tick);busy=false;
+    chat.log.push({ai:1,t:err.message||"Aggiornamento non riuscito."});chat.k=chat.qs.length;renderChat();
+    $("chatIn").disabled=true;$("chatSend").disabled=true;$("chatSkip").disabled=true;
+  }
+}
+$("chatForm").onsubmit=e=>{e.preventDefault();const a=$("chatIn").value.trim();if(a)chatAnswer(a.slice(0,160));else $("chatIn").focus()};
+$("chatSkip").onclick=()=>chatAnswer("Non lo so");
+$("chatClose").onclick=closeChat;
 $("desc").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();describe()}});
 
 // ---- Altro: impostazioni AI (invariate)

@@ -165,6 +165,11 @@
       <label class="txt" for="photo" style="justify-self:center">Cambia foto</label>
     </div>
     <p class="msg" id="aiMsg" role="status" aria-live="polite"></p>
+    <div class="chat hide" id="chat">
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
+      <form class="chat-in" id="chatForm"><input id="chatIn" maxlength="160" enterkeyhint="send" autocomplete="off" placeholder="Rispondi, es. “300 g” o “di pollo”" aria-label="Risposta per l'AI"><button class="pri" id="chatSend" type="submit">Invia</button></form>
+      <div class="chat-acts"><button class="txt" id="chatSkip" type="button">Non lo so</button><button class="txt" id="chatClose" type="button">Va bene così</button></div>
+    </div>
     <p class="notice hide" id="nokey">Per usare l'AI (foto e descrizioni) serve una chiave gratuita. <button class="txt ink" type="button" data-go="altro">Impostala</button></p>
 
     <div class="sec"><h2 class="sr">Cerca</h2>

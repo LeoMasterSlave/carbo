@@ -28,7 +28,9 @@ async function askText(prov,model,key,prompt,ctl){
   }finally{clearTimeout(to)}
 }
 
-function buildPrompt(text){
+// qa: risposte dell'utente alle domande della mini chat, [{q,a}]
+const qaText=qa=>(qa||[]).length?`\nChiarimenti dell'utente (hanno la precedenza sulla descrizione):\n${qa.map(x=>`- Domanda: ${x.q} Risposta: ${x.a}`).join("\n")}`:"";
+function buildPrompt(text,qa){
   return `Sei un dietologo esperto di cucina italiana. L'utente descrive a parole quello che mangia, senza foto. Per ogni alimento distinto indica nome, quantità e carboidrati disponibili per 100 g (per 100 ml se liquido).
 REGOLE:
 1) Non inventare alimenti che l'utente non ha nominato. Se non riconosci con sicurezza un alimento, usa "confidenza_alimento":"bassa" e scrivi una domanda breve in "domanda".
@@ -36,13 +38,13 @@ REGOLE:
 3) Pasta e riso: se l'utente scrive un peso crudo (es. “80 g di pasta cruda”) usa quel peso e scrivi “cruda”/“crudo” nel nome, con i carboidrati del crudo (pasta cruda 72, riso crudo 80); altrimenti il peso è quello cotto (pasta cotta 31, riso cotto 28).
 4) Piatti composti (panino, kebab, piadina, pizza, toast): un solo elemento con il nome completo e il peso complessivo. Non scomporre.
 5) Usa il nome più semplice e comune dell'alimento.
-Descrizione dell'utente: "${text}"
+Descrizione dell'utente: "${text}"${qaText(qa)}
 Rispondi SOLO con JSON: {"items":[{"nome":"...","grammi":numero|null,"unita":"g|ml","cho_per_100g":numero,"confidenza_alimento":"alta|media|bassa","confidenza_peso":"alta|media|bassa","domanda":"opzionale"}]}. Se la descrizione non contiene cibo, items vuoto.`;
 }
 
 // Stessa strategia delle foto: se un modello è lento (5 s) o occupato, parte il successivo.
-function callText(text,stage){
-  const prov=getProv(),key=getKey(),models=MODELS[prov][getMode()],prompt=buildPrompt(text);
+function callText(text,stage,qa){
+  const prov=getProv(),key=getKey(),models=MODELS[prov][getMode()],prompt=buildPrompt(text,qa);
   return new Promise((resolve,reject)=>{
     let next=0,active=0,done=false,last=null,timer=null;const ctls=[];
     const finish=(fn,v)=>{done=true;clearTimeout(timer);ctls.forEach(c=>c.abort());fn(v)};
@@ -65,10 +67,11 @@ function callText(text,stage){
   });
 }
 
-async function describeMeal(text,stage){
+async function describeMeal(text,stage,qa){
   const t=String(text||"").trim().slice(0,200);
   if(!t)return{items:[],model:null};
-  const {out,model}=await callText(t,stage);
+  const clean=(qa||[]).slice(-6).map(x=>({q:String(x.q).slice(0,160),a:String(x.a).slice(0,160)}));
+  const {out,model}=await callText(t,stage,clean);
   const raw=((out&&out.items)||[]).filter(i=>i&&i.nome);
   return{items:raw.map(fromAI).map(i=>{i.ask=i.ask.map(a=>a.k==="weight"&&/foto/.test(a.t)?{...a,t:"Quantità non indicata: ho usato una porzione media"}:a);return i}),model};
 }
