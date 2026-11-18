@@ -10,7 +10,10 @@ export const LIB_VERSION = 1;
 const MAX_RECENTS = 15;
 
 // products: {ean: {n, brand, c100, u, serving, src:"off"|"manual", ts}} — prodotti scansionati o inseriti a mano
-const empty = () => ({ v: LIB_VERSION, favorites: [], recents: [], recipes: [], products: {} });
+// foodEdits: {cid: {n?, c100?, units?:[{t,w}], hidden?, at}} — correzioni dell'utente alle voci dei cataloghi
+// (CREA, stime, etichette, USDA). Sovrapposte ai file al caricamento: i file e il DB del motore non cambiano.
+const empty = () => ({ v: LIB_VERSION, favorites: [], recents: [], recipes: [], products: {}, foodEdits: {} });
+const isObj = x => !!x && typeof x === "object" && !Array.isArray(x);
 let readOnly = false; // libreria scritta da una versione più recente: non la sovrascrivo
 
 export function loadLib() {
@@ -26,7 +29,8 @@ export function loadLib() {
       favorites: Array.isArray(o.favorites) ? o.favorites : [],
       recents: Array.isArray(o.recents) ? o.recents : [],
       recipes: Array.isArray(o.recipes) ? o.recipes : [],
-      products: o.products && typeof o.products === "object" && !Array.isArray(o.products) ? o.products : {}
+      products: o.products && typeof o.products === "object" && !Array.isArray(o.products) ? o.products : {},
+      foodEdits: isObj(o.foodEdits) ? o.foodEdits : {}
     };
   } catch (e) {
     // dati illeggibili: li metto da parte invece di cancellarli

@@ -5,7 +5,7 @@ import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
 import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
-import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor,portionSourceText}from"./data/catalog.js";
+import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor,portionSourceText,setFoodEdits,catAll,catOriginal,cleanFoodEdit}from"./data/catalog.js";
 import{parseBackup,mergePreview,mergeInto,replaceWith,saveSafetyCopy,safetyCopy,restoreSafetyCopy}from"./data/restore.js";
 import{mealsCSV}from"./data/csv.js";
 
@@ -325,7 +325,7 @@ function renderSug(){
   const same=f=>dbAll.some(d=>fold(d.n)===fold(f.n)&&Math.abs(d.c-f.c100)<=Math.max(.5,d.c*.1));
   const cat=catalogFoods().filter(f=>(fold(f.n).includes(qf)||(f.a||[]).some(a=>fold(a).includes(qf)))&&!same(f))
     .sort((a,b)=>rank(a)-rank(b)||a.n.length-b.n.length).slice(0,8)
-    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?"≈ ":""}${fmt(f.c100)} g/100 ${f.u}${srcTag(srcOf(f.cid))}</small></button>`);
+    .map(f=>`<button class="sug" type="button" data-c="${esc(f.cid)}"><span>${esc(f.n)}</span><small>${f.rng&&f.rng[1]>f.rng[0]?"≈ ":""}${fmt(f.c100)} g/100 ${f.u}${srcTag(srcOf(f.cid))}${f.edited?" · modificato":""}</small></button>`);
   const foods=[...db,...cat];
   $("sug").innerHTML=(rc.length||fv.length||pr.length?grp("Preferiti",fv)+grp("Prodotti",pr)+grp("Alimenti",foods)+grp("Ricette",rc):foods.join(""))||`<p class="empty">Nessun risultato per “${esc(raw)}”: usa “Alimento non in elenco”.</p>`;
 }
@@ -729,8 +729,95 @@ function showPanel(p){
   $("p-rcp").classList.toggle("hide",panel!=="rcp");
   $("p-src").classList.toggle("hide",panel!=="src");
   $("p-info").classList.toggle("hide",panel!=="info");
-  renderLibPanels();window.scrollTo(0,0);
+  $("p-food").classList.toggle("hide",panel!=="food");
+  renderLibPanels();if(panel==="food"){loadCatalog().then(renderFoodPanel)}window.scrollTo(0,0);
 }
+
+// ---- Correggi alimenti: correzioni sovrapposte ai cataloghi (lib.foodEdits). File e DB del motore invariati.
+const FOOD_MAX=30;
+const editOf=cid=>(lib.foodEdits||{})[cid]||null;
+function foodRowHTML(f,open){
+  const o=catOriginal(f.cid)||f,e=editOf(f.cid),u=f.u||"g",src=SRC_LABEL[srcOf(f.cid)]||"";
+  const st=f.hidden?"nascosto":f.edited?"corretto":"";
+  const units=(f.units||[]).slice(0,6);
+  const urow=(x,k)=>`<div class="two urow"><label class="fld2"><span>Porzione</span><input data-fu="t" data-k="${k}" value="${esc(x.t)}" maxlength="40" placeholder="es. 1 fetta"></label><label class="fld2"><span>Peso (${u})</span><input data-fu="w" data-k="${k}" type="number" inputmode="decimal" min="0" max="2000" step="0.1" value="${x.w}"></label></div>`;
+  return `<details class="lrow" data-cid="${esc(f.cid)}" ${open?"open":""}><summary><span class="ln"><b>${esc(f.n)}</b><small>${fmt(f.c100)} g/100 ${u} · ${src}${st?` · <span class="srct">${st}</span>`:""}</small></span>${I_CHEV}</summary>
+  <div class="led">
+    <label class="fld2"><span>Nome</span><input data-fe="n" value="${esc(f.n)}" maxlength="80"></label>
+    <label class="fld2"><span>Carboidrati ogni 100 ${u}</span><input data-fe="c100" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="${f.c100}"></label>
+    <div data-units>${units.map(urow).join("")}</div>
+    <button class="txt ink" type="button" data-fadd ${units.length>=6?"disabled":""}>Aggiungi porzione</button>
+    ${e?`<p class="note fine">Originale (${src}): ${esc(o.n)} · ${fmt(o.c100)} g/100 ${u}${(o.units||[]).length?" · "+o.units.map(x=>`${esc(x.t)} ${fmt(x.w)} ${u}`).join(", "):""}</p>`:""}
+    <p class="msg" data-fmsg role="status"></p>
+    <div class="acts2"><button class="pri" type="button" data-fsave>Salva correzione</button><button class="sec-btn" type="button" data-fhide>${f.hidden?"Mostra di nuovo":"Nascondi"}</button></div>
+    ${e?`<button class="txt danger" type="button" data-freset>Ripristina l'originale</button>`:""}
+  </div></details>`;
+}
+function renderFoodPanel(){
+  if(panel!=="food")return;
+  const q=fold($("fq").value.trim()),only=$("fOnly").getAttribute("aria-pressed")==="true";
+  const all=catAll();
+  let list=only?all.filter(f=>editOf(f.cid)):q?all.filter(f=>fold(f.n).includes(q)||fold((catOriginal(f.cid)||f).n).includes(q)||(f.a||[]).some(a=>fold(a).includes(q))):[];
+  if(q&&only)list=list.filter(f=>fold(f.n).includes(q));
+  list.sort((a,b)=>(fold(a.n).startsWith(q)?0:1)-(fold(b.n).startsWith(q)?0:1)||a.n.length-b.n.length);
+  const op=new Set([...document.querySelectorAll("#foodList .lrow[open]")].map(d=>d.dataset.cid));
+  $("foodList").innerHTML=!all.length?'<p class="empty">Elenchi non ancora caricati: riprova tra un attimo.</p>'
+    :!q&&!only?`<p class="empty">Cerca tra ${all.length} alimenti degli elenchi.</p>`
+    :list.length?`<div class="list">${list.slice(0,FOOD_MAX).map(f=>foodRowHTML(f,op.has(f.cid)||list.length===1)).join("")}</div>${list.length>FOOD_MAX?`<p class="empty">Altri ${list.length-FOOD_MAX}: scrivi qualcosa di più preciso.</p>`:""}`
+    :`<p class="empty">${only?"Nessun alimento corretto o nascosto.":"Nessun alimento trovato negli elenchi."}</p>`;
+}
+function foodCountText(){const n=Object.keys(lib.foodEdits||{}).length;return n?String(n):""}
+function saveFoodEdit(cid,e,msg){
+  if(!lib.foodEdits)lib.foodEdits={};
+  if(e)lib.foodEdits[cid]={...e,at:Date.now()};else delete lib.foodEdits[cid];
+  if(!saveLib(lib)){toast(isReadOnly()?"Libreria creata da una versione più recente: modifiche non salvate":"Non sono riuscito a salvare la correzione.");lib=loadLib();setFoodEdits(lib.foodEdits);renderFoodPanel();return false}
+  setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();renderFoodPanel();renderSug();
+  if(msg)toast(msg);return true;
+}
+$("fq").addEventListener("input",renderFoodPanel);
+$("fOnly").onclick=()=>{const b=$("fOnly");b.setAttribute("aria-pressed",String(b.getAttribute("aria-pressed")!=="true"));renderFoodPanel()};
+$("foodList").addEventListener("click",e=>{
+  const row=e.target.closest(".lrow");if(!row)return;
+  const cid=row.dataset.cid,f=catByCid(cid),o=catOriginal(cid);if(!f||!o)return;
+  const m=row.querySelector("[data-fmsg]"),err=t=>{m.className="msg err";m.textContent=t};
+  if(e.target.closest("[data-fadd]")){
+    const box=row.querySelector("[data-units]"),k=box.children.length;if(k>=6)return;
+    box.insertAdjacentHTML("beforeend",`<div class="two urow"><label class="fld2"><span>Porzione</span><input data-fu="t" data-k="${k}" maxlength="40" placeholder="es. 1 fetta"></label><label class="fld2"><span>Peso (${f.u||"g"})</span><input data-fu="w" data-k="${k}" type="number" inputmode="decimal" min="0" max="2000" step="0.1"></label></div>`);
+    box.lastElementChild.querySelector("input").focus();return;
+  }
+  if(e.target.closest("[data-fsave]")){
+    const n=row.querySelector('[data-fe="n"]').value.trim(),cs=row.querySelector('[data-fe="c100"]').value.trim().replace(",",".");
+    const c=+cs;
+    if(!n)return err("Il nome non può essere vuoto.");
+    if(cs===""||!(c>=0&&c<=100))return err("Carboidrati: un numero tra 0 e 100 (grammi ogni 100).");
+    const units=[];
+    for(const r of row.querySelectorAll(".urow")){
+      const t=r.querySelector('[data-fu="t"]').value.trim(),ws=r.querySelector('[data-fu="w"]').value.trim().replace(",","."),w=+ws;
+      if(!t&&!ws)continue;
+      if(!t)return err("Ogni porzione ha bisogno di un nome (es. “1 fetta”).");
+      if(!(w>0&&w<=2000))return err(`Peso della porzione “${t}”: tra 1 e 2000.`);
+      if(!units.some(x=>x.t.toLowerCase()===t.toLowerCase()&&x.w===w))units.push({t,w});
+    }
+    const prev=editOf(cid)||{};
+    const same=(a,b)=>JSON.stringify((a||[]).map(x=>[x.t,+x.w]))===JSON.stringify((b||[]).map(x=>[x.t,+x.w]));
+    const ed={...(n!==o.n?{n}:{}),...(Math.abs(c-o.c100)>1e-9?{c100:c}:{}),...(!same(units,o.units)?{units}:{}),...(prev.hidden?{hidden:true}:{})};
+    const clean=cleanFoodEdit(ed);
+    saveFoodEdit(cid,clean,clean?`Correzione salvata · ${n}`:`Nessuna differenza dall'originale · ${o.n}`);
+    return;
+  }
+  if(e.target.closest("[data-fhide]")){
+    const prev={...(editOf(cid)||{})};delete prev.at;
+    if(f.hidden){delete prev.hidden}else prev.hidden=true;
+    saveFoodEdit(cid,cleanFoodEdit(prev),f.hidden?`Di nuovo nella ricerca · ${f.n}`:`Nascosto dalla ricerca · ${f.n}`);
+    return;
+  }
+  const rs=e.target.closest("[data-freset]");
+  if(rs){
+    if(!rs.dataset.arm){rs.dataset.arm="1";rs.textContent="Tocca di nuovo per ripristinare";setTimeout(()=>{if(rs.isConnected){delete rs.dataset.arm;rs.textContent="Ripristina l'originale"}},4000);return}
+    saveFoodEdit(cid,null,`Ripristinato l'originale · ${o.n}`);
+    return;
+  }
+});
 const favSum=f=>[f.g>0?`${qty(f.g,f.u,f.pz)} abituali`:"quantità non impostata",`${fmt(f.c100)} g/100 ${f.u}`].join(" · ");
 const rcpSum=r=>{const s=recipeStats(r);return `${s.servings} ${s.servings===1?"porzione":"porzioni"} · ${Math.round(s.servCho)} g CHO a porzione`};
 const totLine=r=>{const s=recipeStats(r);return `Totale ${Math.round(s.w)} g · ${fmt(s.cho)} g CHO. Porzione ${Math.round(s.servW)} g · ${fmt(s.servCho)} g CHO.`};
@@ -763,6 +850,7 @@ function rcpHTML(r,open){
   </div></details>`;
 }
 function renderLibPanels(){
+  setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();
   $("favCount").textContent=lib.favorites.length||"";
   $("rcpCount").textContent=lib.recipes.length||"";
   const op=openIds();

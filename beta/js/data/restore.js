@@ -40,7 +40,9 @@ export function parseBackup(text) {
       favorites: arr(lib.favorites).filter(f => f && f.n && num(f.c100)),
       recents: arr(lib.recents).filter(f => f && f.n && num(f.c100)),
       recipes: arr(lib.recipes).filter(r => r && r.id && r.n && Array.isArray(r.ingredients)),
-      products: lib.products && typeof lib.products === "object" && !Array.isArray(lib.products) ? lib.products : {}
+      products: lib.products && typeof lib.products === "object" && !Array.isArray(lib.products) ? lib.products : {},
+      // assente nei backup precedenti ad alpha.16: null = "non presente", non "vuoto"
+      foodEdits: lib.foodEdits && typeof lib.foodEdits === "object" && !Array.isArray(lib.foodEdits) ? lib.foodEdits : null
     } : null,
     settings: d.settings && typeof d.settings === "object" ? d.settings : {},
     from: ts.length ? Math.min(...ts) : null, to: ts.length ? Math.max(...ts) : null
@@ -74,7 +76,8 @@ export function mergeInto(state, lib, b) {
       ...lib,
       favorites: [...lib.favorites, ...L.favorites.filter(f => !fk.has(foodKey(f)))],
       recipes: [...lib.recipes, ...L.recipes.filter(r => !rid.has(r.id))],
-      products: { ...L.products, ...(lib.products || {}) }
+      products: { ...L.products, ...(lib.products || {}) },
+      foodEdits: { ...(L.foodEdits || {}), ...(lib.foodEdits || {}) }
     };
   }
   return { state: { ...state, meals, goal: state.goal ?? b.goal }, lib: nl };
@@ -85,7 +88,7 @@ export function replaceWith(state, lib, b) {
   const L = b.library;
   return {
     state: { ...state, meals: b.meals.slice().sort((x, y) => x.ts - y.ts), goal: b.goal },
-    lib: L ? { ...lib, favorites: L.favorites, recents: L.recents, recipes: L.recipes, products: L.products } : lib
+    lib: L ? { ...lib, favorites: L.favorites, recents: L.recents, recipes: L.recipes, products: L.products, foodEdits: L.foodEdits || lib.foodEdits || {} } : lib
   };
 }
 

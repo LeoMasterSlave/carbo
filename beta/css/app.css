@@ -267,6 +267,11 @@ button.nav-row{color:var(--ink);font-weight:400}
 .thumb{width:40px;height:40px;border-radius:var(--r-sm);object-fit:cover;flex:none}
 .led{display:grid;gap:var(--s3);padding:0 var(--s4) var(--s4)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+#p-food #fq{width:100%;margin:var(--s3) 0 var(--s2)}
+#p-food .seg2{margin-bottom:var(--s3)}
+#p-food [data-units]{display:grid;gap:var(--s2)}
+#p-food .urow{grid-template-columns:3fr 2fr}
+#p-food [data-freset]{justify-self:center}
 .ings{display:grid;gap:6px}
 .ing{display:grid;grid-template-columns:1fr 84px 64px 32px;gap:6px;align-items:center}
 .ing input{min-height:38px;padding:0 var(--s2);font-size:15px}

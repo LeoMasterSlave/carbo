@@ -8,6 +8,33 @@
 // Il primo ha la precedenza in caso di cid uguale.
 const URL_CATS = ["../../data/foods-it.json", "../../data/foods-crea.json", "../../data/foods-stime.json"].map(p => new URL(p, import.meta.url));
 let foods = [], byCid = new Map(), fileDbPortions = new Map(), loading = null;
+// base = voci come nei file; edits = correzioni dell'utente (lib.foodEdits), sovrapposte senza toccare i file
+let base = [], baseByCid = new Map(), edits = {};
+const r1 = x => Math.round(x * 10) / 10;
+function cleanEdit(e) {
+  if (!e || typeof e !== "object") return null;
+  const o = {};
+  if (typeof e.n === "string" && e.n.trim()) o.n = e.n.trim().slice(0, 80);
+  if (Number.isFinite(+e.c100) && e.c100 !== null && e.c100 !== "" && +e.c100 >= 0 && +e.c100 <= 100) o.c100 = r1(+e.c100);
+  if (Array.isArray(e.units)) o.units = e.units.filter(u => u && String(u.t || "").trim() && +u.w > 0 && +u.w <= 2000).slice(0, 6).map(u => ({ t: String(u.t).trim().slice(0, 40), w: r1(+u.w) }));
+  if (e.hidden) o.hidden = true;
+  return Object.keys(o).length ? o : null;
+}
+function merge(f) {
+  const e = cleanEdit(edits[f.cid]);
+  if (!e) return f;
+  return { ...f, ...(e.n ? { n: e.n } : {}), ...(e.c100 != null ? { c100: e.c100, rng: undefined } : {}),
+    ...(e.units ? { units: e.units.map(u => ({ ...u, l: "porzione", src: "mio" })) } : {}), ...(e.hidden ? { hidden: true } : {}), edited: true };
+}
+function rebuild() {
+  const all = base.map(merge);
+  foods = all.filter(f => !f.hidden);
+  byCid = new Map(all.map(f => [f.cid, f])); // anche le nascoste: i riferimenti esistenti restano leggibili
+}
+// Correzioni dell'utente: chiamata all'avvio e a ogni modifica. Non lancia mai.
+export function setFoodEdits(e) { edits = e && typeof e === "object" ? e : {}; rebuild() }
+export const catAll = () => base.map(merge);
+export const catOriginal = cid => baseByCid.get(cid) || null;
 
 const validUnit = u => u && typeof u.t === "string" && u.w > 0 && u.w <= 2000;
 const validRange = r => Array.isArray(r) && r.length === 2 && r[0] >= 0 && r[1] >= r[0];
@@ -29,8 +56,9 @@ export function loadCatalog() {
       all.push({ ...f, u: f.u === "ml" ? "ml" : "g", units: (f.units || []).filter(validUnit).map(cleanUnit),
         ...(validRange(f.rng) ? { rng: f.rng } : { rng: undefined }), rel: f.rel === "etichetta" || f.rel === "stima" ? f.rel : undefined });
     }
-    foods = all;
-    byCid = new Map(foods.map(f => [f.cid, f]));
+    base = all;
+    baseByCid = new Map(base.map(f => [f.cid, f]));
+    rebuild();
     // porzioni del file per voci del DB del motore: solo il peso (i carboidrati restano quelli del DB)
     fileDbPortions = new Map();
     for (const j of ok) for (const [k, v] of Object.entries(j.dbPortions || {}))
@@ -66,10 +94,12 @@ export const portionsFor = name => {
 export function portionSourceText(us) {
   const s = new Set((us || []).map(u => u.src));
   const larn = s.has("larn2014"), file = s.has("file");
+  if (s.has("mio")) return "porzioni corrette da te";
   return larn && file ? "porzioni: LARN e tuo elenco" : larn ? "porzioni standard LARN" : file ? "porzioni dal tuo elenco" : "";
 }
 
 // Provenienza: prefisso dell'identificativo ("usda:171719" → "usda").
 // est = stima dal file dell'utente, lab = etichetta del produttore riportata nel file.
 export const SRC_LABEL = { usda: "USDA", crea: "CREA", off: "OFF", db: "Carbo", manual: "Mio", est: "Stima", lab: "Etichetta" };
+export const cleanFoodEdit = cleanEdit;
 export const srcOf = cid => String(cid || "").split(":")[0];

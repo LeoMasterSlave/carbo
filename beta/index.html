@@ -45,6 +45,7 @@
     <div class="list">
       <button class="row nav-row" type="button" data-panel="fav"><span>Preferiti</span><span class="mut" id="favCount"></span></button>
       <button class="row nav-row" type="button" data-panel="rcp"><span>Ricette</span><span class="mut" id="rcpCount"></span></button>
+      <button class="row nav-row" type="button" data-panel="food"><span>Correggi alimenti</span><span class="mut" id="foodCount"></span></button>
     </div>
   </div>
   <div class="group"><h2>Promemoria</h2>
@@ -105,6 +106,15 @@
   <p class="lead">Componi il piatto con gli ingredienti, poi tocca “Salva come ricetta”. Modificare una ricetta non cambia i pasti già registrati.</p>
   <button class="pri" type="button" id="newRecipe">Nuova ricetta</button>
   <div id="rcpList"></div>
+ </div>
+ <div id="p-food" class="panel hide">
+  <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
+  <h1>Correggi alimenti</h1>
+  <p class="lead">Correggi nome, carboidrati e porzioni degli alimenti degli elenchi (CREA, stime, etichette, USDA), o nascondi quelli obsoleti. Le correzioni restano su questo telefono e finiscono nel backup; i pasti già salvati non cambiano.</p>
+  <p class="note fine">Il database interno di Carbo non si modifica da qui: è quello che corregge le stime dell'AI. Per un alimento sbagliato del database interno, salvalo nei preferiti con il valore giusto.</p>
+  <input id="fq" type="search" placeholder="Cerca un alimento da correggere" aria-label="Cerca un alimento da correggere" autocomplete="off">
+  <div class="seg2" role="group" aria-label="Filtro"><button class="chip" type="button" id="fOnly" aria-pressed="false">Solo corretti o nascosti</button></div>
+  <div id="foodList"></div>
  </div>
  <div id="p-src" class="panel hide">
   <button class="back" type="button" data-panel=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Impostazioni</button>
