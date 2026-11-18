@@ -1,11 +1,11 @@
 // Backup JSON. Il file contiene pasti, obiettivo e preferenze AI non segrete.
 // La chiave API NON viene mai inclusa.
-// Il checksum è sincrono (FNV-1a 32 bit) così la condivisione parte ancora
+// Il checksum Ã¨ sincrono (FNV-1a 32 bit) cosÃ¬ la condivisione parte ancora
 // dentro il gesto dell'utente, come richiede Safari.
 
 export const BACKUP_FORMAT = "carbo-backup";
 export const SCHEMA_VERSION = 2; // 2: aggiunta la libreria (preferiti, recenti, ricette)
-export const APP_VERSION = "2.0.0-alpha.21";
+export const APP_VERSION = "2.0.0-alpha.22";
 const LAST_KEY = "carbo_last_backup";
 
 export function checksum(str) {
@@ -40,7 +40,7 @@ export function buildBackup(state, lib) {
 export function lastBackup() { return +ls(LAST_KEY) || null }
 
 // Consegna un file all'utente. Su telefono usa il foglio di condivisione ("Salva su File",
-// Calendario…), altrove lo scarica. Restituisce "shared", "downloaded" oppure "cancel".
+// Calendarioâ€¦), altrove lo scarica. Restituisce "shared", "downloaded" oppure "cancel".
 export async function saveFile(blob, name, title) {
   const file = typeof File === "function" ? new File([blob], name, { type: blob.type }) : null;
   if (file && navigator.canShare && matchMedia("(pointer:coarse)").matches && navigator.canShare({ files: [file] })) {

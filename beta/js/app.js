@@ -66,7 +66,8 @@ function mealRow(m){
   return `<article class="meal" data-edit="${m.id}" tabindex="0" aria-label="${esc(m.type)} delle ${h}, ${Math.round(m.total)} grammi. Tocca per modificare"><div class="mh"><span class="mt">${esc(m.type)}</span><span class="mtime">${h}</span></div>
   <p class="mi">${m.items.map(i=>esc(i.n)+" "+Math.round(i.g)+" "+(i.u||"g")).join(" · ")}</p>
   <div class="mv"><span class="num">${Math.round(m.total)}</span><span class="u">g</span></div>
-  <button class="ibtn del" data-del="${m.id}" type="button" aria-label="Elimina ${esc(m.type)} delle ${h}">${I_TRASH}</button></article>`;
+  <button class="ibtn del" data-del="${m.id}" type="button" aria-label="Elimina ${esc(m.type)} delle ${h}">${I_TRASH}</button>
+  <div class="swa" aria-hidden="true"><button class="sa" type="button" tabindex="-1" data-swa="again">Rifai</button><button class="sd" type="button" tabindex="-1" data-swa="del">Elimina</button></div></article>`;
 }
 function render(){
   const now=new Date(),today=tdKey(now);
@@ -142,7 +143,19 @@ function renderCal(){
   const sel=calDay?new Date(calDay+"T12:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}):"";
   $("cal").innerHTML=`<div class="cal-h"><button class="ibtn" type="button" data-calm="-1" aria-label="Mese precedente"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><b aria-live="polite">${title}</b><button class="ibtn" type="button" data-calm="1" aria-label="Mese successivo"${thisM?" disabled":""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="cal-g">${cells}</div>${calDay?`<div class="cal-f"><span>${sel}</span><button class="txt ink" type="button" data-calall>Mostra tutti i giorni</button></div>`:""}`;
 }
+// scorrere il calendario a destra o a sinistra cambia mese
+let cs=null,csNoClick=0;
+$("cal").addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse")cs={x:e.clientX,y:e.clientY}});
+$("cal").addEventListener("pointerup",e=>{
+  if(!cs)return;const dx=e.clientX-cs.x,dy=e.clientY-cs.y;cs=null;
+  if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*2)return;
+  const now=new Date(),d=dx<0?1:-1,next=new Date(calM.getFullYear(),calM.getMonth()+d,1);
+  if(next>now)return;
+  calM=next;csNoClick=Date.now();renderCal();
+});
+$("cal").addEventListener("pointercancel",()=>{cs=null});
 $("cal").onclick=e=>{
+  if(Date.now()-csNoClick<400)return;
   const m=e.target.closest("[data-calm]");if(m){calM=new Date(calM.getFullYear(),calM.getMonth()+(+m.dataset.calm),1);renderCal();return}
   const d=e.target.closest("[data-day]");if(d){calDay=calDay===d.dataset.day?null:d.dataset.day;renderCal();renderHist();return}
   if(e.target.closest("[data-calall]")){calDay=null;renderCal();renderHist()}
@@ -240,24 +253,82 @@ const desk=()=>matchMedia("(min-width:768px)").matches;
 function openSheet(type){
   if(type)setType(type);else if(!cur.length)setType(defaultType());
   if(sheetOpen)return;
-  sheetOpen=true;lastFocus=document.activeElement;
+  sheetOpen=true;lastFocus=document.activeElement;navPush({k:"sheet"});
   renderSug();
   sheet.style.transform="";sheet.classList.add("open");scrim.classList.add("open");
   $("main").inert=true;$("dock").inert=true;document.documentElement.classList.add("lock");
   checkKey();
   $("sheetT").focus({preventScroll:true}); // il pannello è già visibile (visibility senza ritardo in apertura)
 }
-function closeSheet(){
-  closeScanner();
+function closeSheet(fromPop){
+  closeScanner(fromPop);
   if(!sheetOpen)return;
-  sheetOpen=false;
+  sheetOpen=false;if(!fromPop)navPop("sheet");
   sheet.classList.remove("open");scrim.classList.remove("open");sheet.style.transform="";
   $("main").inert=false;$("dock").inert=false;document.documentElement.classList.remove("lock");
   if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus({preventScroll:true});
 }
 $("fab").onclick=()=>openSheet();
-$("closeSheet").onclick=closeSheet;
-scrim.onclick=closeSheet;
+$("closeSheet").onclick=()=>closeSheet();
+scrim.onclick=()=>closeSheet();
+// ---- Gesto "indietro" di iPhone (scorrere dal bordo sinistro) e pulsante Indietro del browser.
+// Ogni livello aperto (pagina di Impostazioni, pannello Aggiungi, scanner) ha una voce di cronologia.
+// Le voci nascono solo durante un tocco: Safari salta quelle create senza un gesto dell'utente.
+var nav=[],navSkip=0,navPending=0;
+function navPush(o){nav.push(o);try{history.pushState({carbo:nav.length},"")}catch(e){}}
+// Chiusura dall'interfaccia: toglie la voce (e quelle sopra) e riallinea la cronologia con un solo passo indietro.
+function navPop(k,first){
+  const i=first?nav.findIndex(x=>x.k===k):nav.map(x=>x.k).lastIndexOf(k);if(i<0)return;
+  const n=nav.length-i;nav.length=i;navPending+=n;
+  if(navPending===n)setTimeout(()=>{const s=navPending;navPending=0;if(s>0){navSkip++;history.go(-s)}},0);
+}
+window.addEventListener("popstate",e=>{
+  if(navSkip){navSkip--;return}
+  const d=(e.state&&e.state.carbo)||0;let panelTouched=false;
+  while(nav.length>d){const o=nav.pop();if(o.k==="scanner")closeScanner(true);else if(o.k==="sheet")closeSheet(true);else if(o.k==="panel")panelTouched=true}
+  if(panelTouched){const p=[...nav].reverse().find(x=>x.k==="panel");showPanel(p?p.p:"",true)}
+});
+try{history.replaceState(null,"")}catch(e){}
+// Trascinare giù il pannello Aggiungi anche dal contenuto, quando è già in cima (come i fogli di iOS)
+let bd=null;const sheetB=$("sheetB");
+sheetB.addEventListener("touchstart",e=>{bd=desk()||e.touches.length!==1?null:{x:e.touches[0].clientX,y:e.touches[0].clientY,t:performance.now(),dy:0,on:false}},{passive:true});
+sheetB.addEventListener("touchmove",e=>{
+  if(!bd)return;const p=e.touches[0],dx=p.clientX-bd.x,dy=p.clientY-bd.y;
+  if(!bd.on){
+    if(sheetB.scrollTop>0||dy<0||Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>8||Math.abs(dy)>8)bd=null;return}
+    if(dy<10)return;
+    bd.on=true;bd.y0=p.clientY;bd.t=performance.now();sheet.style.transition="none";
+  }
+  e.preventDefault();bd.dy=Math.max(0,p.clientY-bd.y0);sheet.style.transform=`translateY(${bd.dy}px)`;
+},{passive:false});
+const endBodyDrag=()=>{
+  if(!bd)return;const b=bd;bd=null;if(!b.on)return;
+  const v=b.dy/Math.max(1,performance.now()-b.t);sheet.style.transition="";
+  if(b.dy>120||(v>.5&&b.dy>30))closeSheet();else sheet.style.transform="";
+};
+sheetB.addEventListener("touchend",endBodyDrag);sheetB.addEventListener("touchcancel",endBodyDrag);
+// Scorrere a sinistra un pasto (Oggi e Diario): compaiono Rifai ed Elimina; scorrendo fino in fondo si elimina subito (con Annulla).
+const SWW=152;let sw=null,swOpen=null;
+function swClose(row){if(!row)return;row.classList.remove("swiped");row.style.transform="";if(swOpen===row)swOpen=null}
+document.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse")return;
+  const row=e.target.closest(".meal[data-edit]");
+  if(swOpen&&swOpen!==row)swClose(swOpen);
+  if(!row||e.target.closest(".swa,.del"))return;
+  sw={row,x:e.clientX,y:e.clientY,base:row.classList.contains("swiped")?-SWW:0,cur:0,on:false};
+});
+document.addEventListener("pointermove",e=>{
+  if(!sw)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;
+  if(!sw.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){sw=null;return}if(Math.abs(dx)<10)return;sw.on=true;sw.row.style.transition="none"}
+  sw.cur=Math.min(0,sw.base+dx);sw.row.style.transform=`translateX(${sw.cur}px)`;
+});
+const swEnd=e=>{
+  if(!sw)return;const s=sw;sw=null;if(!s.on)return;
+  s.row.style.transition="";s.row.dataset.noclick="1";setTimeout(()=>{delete s.row.dataset.noclick},350);
+  if(e.type!=="pointercancel"&&s.cur<-s.row.offsetWidth*.6){delMeal(s.row.dataset.edit);return}
+  if(s.cur<-SWW/2){s.row.classList.add("swiped");s.row.style.transform="";swOpen=s.row}else swClose(s.row);
+};
+document.addEventListener("pointerup",swEnd);document.addEventListener("pointercancel",swEnd);
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&sheetOpen){if(scannerOpen())closeScanner();else closeSheet()}
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".meal[data-edit]")){e.preventDefault();editMeal(e.target.dataset.edit)}
@@ -304,13 +375,16 @@ $("toastU").onclick=()=>{const f=undoFn;hideToast();if(f)f()};
 
 $("goal").onchange=e=>{state.goal=+e.target.value||null;persist();render()};
 $("hq").oninput=renderHist;
+function delMeal(id){
+  const k=state.meals.findIndex(m=>m.id===id);
+  if(k>=0){const [m]=state.meals.splice(k,1);persist();render();
+    toast(`Pasto eliminato · ${m.type}`,()=>{state.meals.splice(Math.min(k,state.meals.length),0,m);persist();render()})}
+}
 document.body.addEventListener("click",e=>{
-  const d=e.target.closest("[data-del]");if(d){
-    const k=state.meals.findIndex(m=>m.id===d.dataset.del);
-    if(k>=0){const [m]=state.meals.splice(k,1);persist();render();
-      toast(`Pasto eliminato · ${m.type}`,()=>{state.meals.splice(Math.min(k,state.meals.length),0,m);persist();render()})}
-    return;
-  }
+  const sa=e.target.closest("[data-swa]");if(sa){const id=sa.closest(".meal").dataset.edit;if(sa.dataset.swa==="del")delMeal(id);else{swClose(sa.closest(".meal"));repeatMeal(id)}return}
+  const nr=e.target.closest(".meal[data-noclick]");if(nr)return;
+  const sr=e.target.closest(".meal.swiped");if(sr&&!e.target.closest(".del")){swClose(sr);return}
+  const d=e.target.closest("[data-del]");if(d){delMeal(d.dataset.del);return}
   const ed=e.target.closest("[data-edit]");if(ed){editMeal(ed.dataset.edit);return}
   const fb=e.target.closest("[data-fav]");if(fb){
     const it=cur[+fb.dataset.fav],ex=findFav(lib,it);
@@ -815,7 +889,8 @@ async function checkStorage(ask){
 // ---- Altro: pannelli Preferiti e Ricette
 let panel="";
 var prevPanel="";
-function showPanel(p){
+function showPanel(p,fromPop){
+  if(!fromPop){if(p&&p!==panel)navPush({k:"panel",p});else if(!p&&panel)navPop("panel",true)}
   panel=p||"";
   $("altroMain").classList.toggle("hide",!!panel);
   $("p-fav").classList.toggle("hide",panel!=="fav");
@@ -1051,19 +1126,21 @@ async function startCam(){
 // Lo scanner copre il pannello: il resto diventa inerte e il fuoco torna al pulsante all'uscita.
 function scanBehind(){return[$("sheetH"),$("sheetB"),document.querySelector(".sheet-f")]}
 function openScanner(){
+  if(!scannerOpen())navPush({k:"scanner"});
   $("scanner").classList.remove("hide");$("prod").innerHTML="";$("codeIn").value="";
   scanBehind().forEach(e=>e&&(e.inert=true));
   const sh=document.querySelector("#scanner h3");sh.tabIndex=-1;sh.focus({preventScroll:true});
   startCam();
 }
-function closeScanner(){
+function closeScanner(fromPop){
   stopCam();const was=!$("scanner").classList.contains("hide");
+  if(was&&fromPop!==true)navPop("scanner");
   $("scanner").classList.add("hide");scanBehind().forEach(e=>e&&(e.inert=false));
   if(was&&sheetOpen)$("scanBtn").focus({preventScroll:true});
 }
 function scannerOpen(){return!$("scanner").classList.contains("hide")}
 $("scanBtn").onclick=openScanner;
-$("scanBack").onclick=closeScanner;
+$("scanBack").onclick=()=>closeScanner();
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden)stopCam();
   else if(!$("scanner").classList.contains("hide")&&!$("prod").innerHTML)startCam();

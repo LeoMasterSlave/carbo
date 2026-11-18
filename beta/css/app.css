@@ -276,6 +276,15 @@ img.prev{display:block;width:100%;max-height:220px;object-fit:cover;border-radiu
 /* modifica pasto */
 .meal[data-edit]{cursor:pointer;border-radius:0;transition:background .16s var(--ease)}
 .meal[data-edit]:active{background:var(--fill)}
+/* scorrere a sinistra un pasto: azioni Rifai / Elimina */
+#meals,#hist{overflow-x:clip}
+.meal[data-edit]{position:relative;touch-action:pan-y;transition:background .16s var(--ease),transform .24s var(--ease)}
+.meal.swiped{transform:translateX(-152px)}
+.swa{position:absolute;top:0;bottom:0;left:100%;width:152px;display:flex}
+.swa button{flex:1;border:0;font:inherit;font-size:.882rem;font-weight:600;cursor:pointer}
+.swa .sa{background:var(--fill);color:var(--ink)}
+.swa .sd{background:#B3261E;color:#fff}
+@media(pointer:fine){.swa{display:none}}
 /* pannelli in Altro */
 .nav-row::after{content:"";width:6px;height:6px;margin-left:var(--s2);border-right:1.75px solid var(--mut);border-bottom:1.75px solid var(--mut);transform:rotate(-45deg);flex:none}
 .nav-row>span:last-of-type{margin-left:auto}
