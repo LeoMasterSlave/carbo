@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.17`, pubblicata su `/carbo/beta/` il 18/11/2026 (Correggi alimenti per tutti gli alimenti §9.16; SW v26, commit `680263a`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
+Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.18`, pubblicata su `/carbo/beta/` il 18/11/2026 (copia di sicurezza IndexedDB §4.1; SW v27, commit `0996043`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -67,7 +67,7 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 | Calendario mensile nel Diario (totale per giorno, tocco = filtro) | ✅ (browser) |
 | Copia di un pasto (anche di un altro giorno) come nuovo pasto di oggi | ✅ (browser) |
 | `navigator.storage.persist()` con stato in Altro → Dati | ✅ (browser: richiesta e messaggio) · ❓ concessione reale su iPhone |
-| IndexedDB | ⏳ non implementato (decisione aperta, §4.1) |
+| IndexedDB (copia di sicurezza automatica + recupero) | ✅ (browser, alpha.18) |
 | Notifiche push | ⏳ escluse (servirebbe un backend) |
 
 ## 3. Motore AI — NON MODIFICARE
@@ -128,7 +128,12 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
   - motore AI: hash `5a9885b0`, 133,1 g, `gemini-2.5-flash-lite`;
   - nessun errore in console; 375 px senza scorrimento orizzontale; `git diff` su `beta/js/engine` e sui file di produzione vuoto;
   - dati di prova riportati allo stato iniziale.
-- **IndexedDB — decisione aperta.** La produzione v1 legge solo `localStorage["carbo"]`, condiviso con la beta. Spostare i pasti in IndexedDB prima della promozione renderebbe invisibili alla v1 i pasti registrati con la beta. Proposta: lasciare `localStorage` come archivio principale fino alla promozione (Fase 5) e usare IndexedDB solo come copia di sicurezza automatica; la migrazione vera insieme alla promozione. Serve l'approvazione dell'utente.
+- **IndexedDB — ✅ deciso e fatto (18/11/2026, alpha.18).** L'utente ha approvato la proposta: `localStorage` resta l'archivio principale fino alla promozione (la v1 legge `carbo`); IndexedDB (`carbo-safety`, store `snap`) tiene solo una copia delle stesse stringhe `carbo` e `carbo_lib`. La migrazione vera si farà con la promozione (Fase 5).
+  - Modulo `js/data/idb.js`. Record `latest` + uno al giorno (`day:AAAA-MM-GG`, ultimi 7). Scrittura 1,5 s dopo ogni salvataggio (pasti, libreria, correzioni), 3 s dopo l'avvio e quando l'app va in secondo piano.
+  - Mai una copia vuota sopra una buona: se `carbo` e `carbo_lib` mancano entrambi non si scrive.
+  - Se all'avvio `localStorage` è vuoto e c'è una copia con dati: riquadro in Oggi "Recupera" / "Inizia da zero" (doppio tocco). Finché l'utente non sceglie la copia non viene sovrascritta.
+  - Impostazioni → Dati mostra data e numero di pasti dell'ultima copia. Non sostituisce il backup (stesso telefono).
+  - ✅ Browser: copia scritta, svuotamento simulato → riquadro con data e 2 pasti, copia protetta durante l'attesa, "Recupera" riporta i 2 pasti, "Inizia da zero" con conferma, stato in Impostazioni, nessun errore; dati di prova cancellati. ✅ Online: SW v27. ❓ Non provato su iPhone (comportamento di Safari quando svuota i dati).
 
 ## 5. Interfaccia
 
@@ -161,7 +166,7 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 - Fase D completata nel browser: USDA (§9.10), LARN (§9.11), elenco utente (§9.12), CREA (§9.13).
 - Aggiunte fuori roadmap (18/11/2026, richieste dall'utente): Descrivi il piatto (§9.14), mini chat con l'AI (§9.15), Correggi alimenti per tutti gli alimenti (§9.16).
 - Pubblicate: alpha.5 (`c83e149`, 16/11/2026), alpha.6 (`1d5942a`, 17/11/2026).
-- Fase 4: 5 attività su 6 fatte e verificate nel browser in alpha.7, pubblicata il 17/11/2026 (§4.1). IndexedDB in attesa di decisione.
+- Fase 4 completata nel browser: 5 attività in alpha.7 (17/11/2026), copia di sicurezza IndexedDB in alpha.18 (18/11/2026, §4.1).
 - In attesa: test della beta su iPhone da parte dell'utente.
 - Problemi noti:
   1. Non verificati su iPhone reale: fotocamera/ZXing, apertura `.ics`, foglio di condivisione del backup, trascinamento del pannello, installazione in Home.
@@ -180,11 +185,10 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 
 ## 7. Prossimi interventi (priorità)
 
-1. Fase V: prova su iPhone di alpha.17 con chiave reale (Descrivi, mini chat, CREA, Correggi alimenti) e delle 5 voci di V; correggere quello che emerge.
-2. Fase 4, ultima attività: IndexedDB. Decisione dell'utente richiesta (§4.1): proposta = copia di sicurezza in IndexedDB ora, migrazione vera alla promozione.
-3. Fase 5: rifinitura e accessibilità, test finale, promozione della beta a produzione (sostituire la root con `beta/` togliendo le differenze "Beta"; richiede l'approvazione dell'utente).
-4. Dati: pasta fresca e ripiena da rivedere con una fonte (§9.12); sinonimi comuni per i nomi CREA (es. "mela" → "Mele, fresche…").
-5. Facoltativo: suite di regressione del motore AI nel repo.
+1. Fase V: prova su iPhone di alpha.18 con chiave reale (Descrivi, mini chat, CREA, Correggi alimenti, stato della copia di sicurezza) e delle 5 voci di V; correggere quello che emerge.
+2. Fase 5 (include la migrazione vera a IndexedDB): rifinitura e accessibilità, test finale, promozione della beta a produzione (sostituire la root con `beta/` togliendo le differenze "Beta"; richiede l'approvazione dell'utente).
+3. Dati: pasta fresca e ripiena da rivedere con una fonte (§9.12); sinonimi comuni per i nomi CREA (es. "mela" → "Mele, fresche…").
+4. Facoltativo: suite di regressione del motore AI nel repo.
 
 ## 8. Decisioni e vincoli
 
@@ -471,18 +475,18 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 | 3 Barcode e promemoria | ✅ scanner · ✅ OFF + prodotti ricordati · ✅ pezzi/porzioni · ✅ avviso in-app · ✅ `.ics` | Completata (browser) | 100% (5/5) |
 | V Validazione iPhone | ⬜ installazione in Home · ⬜ fotocamera/ZXing · ⬜ `.ics` · ⬜ condivisione backup · ⬜ trascinamento pannello | In attesa dell'utente | 0% (0/5) |
 | D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ✅ elenco utente come stime (§9.12) · ✅ catalogo CREA (§9.13) | Completata (browser) | 100% (14/14) |
-| 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ⬜ IndexedDB (decisione aperta) | In corso | 83% (5/6) |
+| 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ✅ IndexedDB (copia di sicurezza, §4.1) | Completata (browser) | 100% (6/6) |
 | 5 Rilascio | ⬜ rifinitura e accessibilità · ⬜ test finale · ⬜ promozione di `beta/` in produzione | Pianificata | 0% (0/3) |
 
-**Complessivo: 35/44 attività = 80%.**
+**Complessivo: 36/44 attività = 82%.** Restano V (5, prove su iPhone) e Fase 5 (3).
 
-- Fase attuale: **4 – Dati e Diario**, 83% (IndexedDB in attesa di decisione). Fase D completata nel browser (alpha.14). V: l'utente riferisce che tutte le funzioni di alpha.8 funzionano su iPhone; ❓ voci di V non ancora spuntate una per una.
+- Fase attuale: **V – Validazione iPhone**, 0/5 spuntate (l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone; ❓ voci non spuntate una per una). Fasi 0–4 e D completate nel browser.
 - Bloccato: V dipende dall'utente.
-- Dipendenze: la Fase 5 dipende da V e dalla Fase 4.
+- Dipendenze: la Fase 5 dipende da V.
 - Prossimo intervento:
-  1. provare alpha.17 su iPhone con una chiave reale: "Descrivi il piatto", mini chat (foto e descrizione), ricerca di voci CREA, Correggi alimenti;
+  1. provare alpha.18 su iPhone con una chiave reale e spuntare le 5 voci di V;
   2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
-  3. decidere su IndexedDB (§4.1), poi Fase 5.
+  3. Fase 5: rifinitura e accessibilità, test finale, promozione (con approvazione).
 
 ### Registro sessioni
 - 16/11/2026: Fasi 0–3; beta pubblicata in `/carbo/beta/`; pezzi/porzioni; report creato; audit del DB alimenti; fattibilità USDA (script + 13 candidati + confronti); regola CREA decisa: amido + zuccheri; catalogo USDA (9 voci) integrato in ricerca, chip porzioni, pagina Fonti, verificato nel browser; alpha.5 pubblicata (commit `c83e149`).
@@ -497,3 +501,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 18/11/2026: alpha.15 — mini chat per rispondere alle domande dell'AI dopo foto o descrizione (§9.15). Verificata nel browser con AI simulata e online (commit `fe38711`, SW v24).
 - 18/11/2026: alpha.16 — Correggi alimenti: correzioni e voci nascoste per i cataloghi, nel backup (§9.16). Verificata nel browser e online (commit `e4f3429`, SW v25). Spiegato all'utente che più chiavi API non migliorano la precisione.
 - 18/11/2026: alpha.17 — "rendi tutto modificabile": correzioni anche per il DB interno, applicate dopo il motore (§8, §9.16). Verificata nel browser e online (commit `680263a`, SW v26).
+- 18/11/2026: alpha.18 — IndexedDB come copia di sicurezza automatica con recupero (§4.1, approvato dall'utente). Verificata nel browser e online (commit `0996043`, SW v27). Fase 4 completata: 36/44 = 82%.
