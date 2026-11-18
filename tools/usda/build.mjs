@@ -97,7 +97,7 @@ if (cmd === "find") {
       src: { db: "usda", ds: DATASET, id: +f.fdc, desc: f.desc, orig, formula: "carboidrati per differenza − fibra totale" }
     });
   }
-  const outFile = join(HERE, "..", "..", "beta", "data", "foods-it.json");
+  const outFile = join(HERE, "..", "..", "beta", "data", "fonti", "foods-it.json"); // completo; la versione per l'app la scrive tools/slim/build.mjs
   writeFileSync(outFile, JSON.stringify({
     format: "carbo-catalog", version: 1, generated: new Date().toISOString().slice(0, 10),
     basis: "g di carboidrati disponibili per 100 g di parte edibile",

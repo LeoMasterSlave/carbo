@@ -130,6 +130,7 @@
    <li><h3>Open Food Facts <span class="st on">in uso</span></h3><p>Prodotti confezionati cercati con il codice a barre: valori dichiarati in etichetta. Viene inviato solo il codice a barre.</p><p>© Open Food Facts contributors, licenza <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">openfoodfacts.org</a></p></li>
    <li><h3>CREA Alimenti e Nutrizione <span class="st on">in uso</span></h3><p>Tabelle di composizione degli alimenti italiane (aggiornamento dicembre 2019): circa 830 alimenti nella ricerca, con la porzione standard CREA. Valori normalizzati a peso (amido + zuccheri) per 100 g di parte edibile: sui cibi amidacei sono circa il 9% più bassi del valore pubblicato da CREA (espresso in monosaccaridi), in linea con le etichette. “Tracce” contano come 0. Lo zucchero da tavola resta nel database interno.</p><p>CREA – Centro di ricerca Alimenti e Nutrizione. <a href="https://www.alimentinutrizione.it/tabelle-nutrizionali" target="_blank" rel="noopener">alimentinutrizione.it</a></p></li>
    <li><h3>Inseriti da te <span class="st on">in uso</span></h3><p>Alimenti personalizzati, prodotti corretti a mano, preferiti e ricette: restano solo su questo telefono.</p></li>
+   <li><h3>Provenienza voce per voce</h3><p>Per ogni alimento importato: riga del file d’origine, valori pubblicati e calcolo. Non serve all’app, quindi si scarica solo se lo apri (file JSON): <a href="data/fonti/foods-crea.json" target="_blank" rel="noopener">CREA</a> · <a href="data/fonti/foods-stime.json" target="_blank" rel="noopener">tuo elenco</a> · <a href="data/fonti/foods-it.json" target="_blank" rel="noopener">USDA</a>.</p></li>
   </ul>
  </div>
  <div id="p-info" class="panel hide">
@@ -208,7 +209,7 @@
       </form>
     </div>
   </div>
-  <div class="scanner hide" id="scanner" role="region" aria-label="Scanner codice a barre">
+  <div class="scanner hide" id="scanner" role="group" aria-label="Scanner codice a barre">
     <div class="sc-h"><button class="back" id="scanBack" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Pasto</button><h3>Codice a barre</h3><span></span></div>
     <div class="sc-b">
       <div class="vf" id="vf"><video id="scanVideo" playsinline muted aria-hidden="true"></video><i class="reticle" aria-hidden="true"></i><p class="vf-s" id="scanStatus" role="status" aria-live="polite"></p></div>
@@ -220,6 +221,7 @@
   <div class="sheet-f">
     <div class="t"><small>Totale piatto</small><span class="num"><span id="cur">0</span> g</span></div>
     <button class="pri" id="save" type="button" disabled>Salva pasto</button>
+    <p class="sr" id="curLive" aria-live="polite"></p>
   </div>
 </div>
 

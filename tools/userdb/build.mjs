@@ -16,12 +16,12 @@ import { dirname, join } from "node:path";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
 const CSV = join(HERE, "alimenti-260.csv");
-const OUT = join(ROOT, "beta", "data", "foods-stime.json");
+const OUT = join(ROOT, "beta", "data", "fonti", "foods-stime.json"); // completo; la versione per l'app la scrive tools/slim/build.mjs
 const REPORT = join(HERE, "REPORT.md");
 const FILE_NAME = "database_carbo_260_alimenti.csv";
 
 const { DB } = await import(pathToFileURL(join(ROOT, "beta", "js", "engine", "fooddb.js")).href);
-const USDA = JSON.parse(readFileSync(join(ROOT, "beta", "data", "foods-it.json"), "utf8")).foods;
+const USDA = JSON.parse(readFileSync(join(ROOT, "beta", "data", "fonti", "foods-it.json"), "utf8")).foods;
 
 // ---------- CSV
 function parseCSV(text) {

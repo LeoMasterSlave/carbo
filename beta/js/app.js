@@ -14,7 +14,7 @@ const $=id=>document.getElementById(id);
 let cur=[];
 let state={meals:[],goal:null};
 let lib=loadLib();
-const persistLib=()=>{if(!saveLib(lib)&&isReadOnly())toast("Libreria creata da una versione più recente: modifiche non salvate");scheduleSafety()};
+const persistLib=()=>{if(!saveLib(lib))toast(isReadOnly()?"Libreria creata da una versione più recente: modifiche non salvate":FULL_MSG);scheduleSafety()};
 // Correzioni dell'utente alle voci del database interno ("db:<nome>" in lib.foodEdits).
 // fooddb.js e ai.js restano invariati: la correzione si applica DOPO, al valore usato nel piatto
 // (ricerca, cambio voce, crudo/cotto, risultati di foto e descrizioni che riconoscono la voce).
@@ -52,7 +52,9 @@ const I_CHEV=ico('<path d="m9 6 6 6-6 6"/>',16);
 const fmt=x=>String(r1(x)).replace(".",",");
 
 function lsGet(){try{return JSON.parse(localStorage.getItem("carbo")||"null")}catch(e){return null}}
-function persist(){try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){}scheduleSafety()}
+// Restituisce false se il salvataggio non riesce (memoria piena o archivio bloccato) e lo dice all'utente.
+const FULL_MSG="Memoria del telefono piena: le ultime modifiche non sono salvate in modo permanente. Esporta un backup e libera spazio.";
+function persist(){let ok=true;try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){ok=false}scheduleSafety();if(!ok)toast(FULL_MSG);return ok}
 function mealType(){const c=document.querySelector('input[name=mt]:checked');return c?c.value:"Pranzo"}
 function defaultType(){const h=new Date().getHours();return h<10?"Colazione":h<15?"Pranzo":h<18?"Spuntino":"Cena"}
 function setType(t){const r=document.querySelector('input[name=mt][value="'+t+'"]');if(r)r.checked=true}
@@ -176,10 +178,17 @@ function renderCur(){
    <div class="stp">${stepH}${star}</div></div>`};
   $("items").innerHTML=(showBlock&&blocked()?'<div class="msg err" role="alert">Conferma o correggi gli alimenti segnalati prima di salvare.</div>':"")+(cur.length?cur.map(itemHTML).join(""):'<div class="mut" style="padding:6px 0 2px">Ancora vuoto: fotografa il piatto o cerca un alimento.</div>');
   $("cur").textContent=total();
+  announceTotal();
   $("save").disabled=!cur.length;
   $("pacts").classList.toggle("hide",!cur.length);
   if(!cur.length)$("rform").classList.add("hide");
   syncFab();
+}
+// VoiceOver: il totale del piatto viene letto quando smette di cambiare (non a ogni tocco di +/−)
+var totTimer=null,totSaid=null;
+function announceTotal(){
+  clearTimeout(totTimer);
+  totTimer=setTimeout(()=>{const t=total();if(!sheetOpen||t===totSaid)return;totSaid=t;const l=document.getElementById("curLive");if(l)l.textContent=`Totale piatto ${fmt(t)} grammi di carboidrati`},900);
 }
 function syncFab(){
   const n=cur.length,f=$("fab");
@@ -199,7 +208,7 @@ function openSheet(type){
   sheet.style.transform="";sheet.classList.add("open");scrim.classList.add("open");
   $("main").inert=true;$("dock").inert=true;document.documentElement.classList.add("lock");
   checkKey();
-  requestAnimationFrame(()=>$("sheetT").focus({preventScroll:true}));
+  $("sheetT").focus({preventScroll:true}); // il pannello è già visibile (visibility senza ritardo in apertura)
 }
 function closeSheet(){
   closeScanner();
@@ -213,7 +222,7 @@ $("fab").onclick=()=>openSheet();
 $("closeSheet").onclick=closeSheet;
 scrim.onclick=closeSheet;
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"&&sheetOpen)closeSheet();
+  if(e.key==="Escape"&&sheetOpen){if(scannerOpen())closeScanner();else closeSheet()}
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".meal[data-edit]")){e.preventDefault();editMeal(e.target.dataset.edit)}
 });
 // trascinamento verso il basso per chiudere (solo su telefono)
@@ -251,7 +260,7 @@ function toast(msg,undo){
   $("toastT").textContent=msg;undoFn=undo||null;
   $("toastU").classList.toggle("hide",!undo);
   $("toast").classList.add("show");
-  clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,undo?6000:3000);
+  clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,undo?6000:msg.length>70?9000:3000);
 }
 function hideToast(){$("toast").classList.remove("show");undoFn=null}
 $("toastU").onclick=()=>{const f=undoFn;hideToast();if(f)f()};
@@ -465,6 +474,7 @@ $("rform").onsubmit=e=>{
 // ---- foto + analisi AI (il motore è in engine/ai.js)
 let photoBlob=null,busy=false;
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OFFLINE_MSG="Sei offline: l'AI non è raggiungibile. Puoi cercare e aggiungere alimenti anche senza rete.";
 function setMsg(t,cls){const m=$("aiMsg");m.className="msg"+(cls?" "+cls:"");m.textContent=t||""}
 function checkKey(){$("nokey").classList.toggle("hide",!!getKey())}
 
@@ -482,6 +492,7 @@ $("photo").onchange=async e=>{
 async function analyze(){
   if(busy||!photoBlob)return;
   if(!getKey()){setMsg("Manca la chiave AI: impostala per analizzare le foto.","err");checkKey();return}
+  if(navigator.onLine===false){setMsg(OFFLINE_MSG,"err");return}
   busy=true;setMsg("");
   $("analyze").setAttribute("aria-busy","true");$("analyzeTxt").textContent="Analisi in corso…";$("spin").classList.remove("hide");$("scan").classList.add("on");
   let base="Preparo la foto…";const t0=Date.now();
@@ -522,6 +533,7 @@ async function describe(){
   if(busy)return;
   if(!t){setMsg("Scrivi cosa mangi, es. “kebab medio”.","err");$("desc").focus();return}
   if(!getKey()){setMsg("Manca la chiave AI: impostala per stimare dalle descrizioni.","err");checkKey();return}
+  if(navigator.onLine===false){setMsg(OFFLINE_MSG,"err");return}
   busy=true;setMsg("");
   $("descGo").setAttribute("aria-busy","true");$("dspin").classList.remove("hide");
   let base="Stimo i carboidrati…";const t0=Date.now();
@@ -763,6 +775,7 @@ async function checkStorage(ask){
 
 // ---- Altro: pannelli Preferiti e Ricette
 let panel="";
+var prevPanel="";
 function showPanel(p){
   panel=p||"";
   $("altroMain").classList.toggle("hide",!!panel);
@@ -772,6 +785,12 @@ function showPanel(p){
   $("p-info").classList.toggle("hide",panel!=="info");
   $("p-food").classList.toggle("hide",panel!=="food");
   renderLibPanels();if(panel==="food"){loadCatalog().then(renderFoodPanel)}window.scrollTo(0,0);
+  // VoiceOver: il fuoco va al titolo del pannello aperto; tornando indietro, alla riga che l'aveva aperto
+  if(view==="altro"&&p!==undefined){
+    if(panel){const h=document.querySelector(`#p-${panel} h1`);if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
+    else if(prevPanel){const b=document.querySelector(`#altroMain [data-panel="${prevPanel}"]`);if(b)b.focus({preventScroll:true})}
+  }
+  prevPanel=panel;
 }
 
 // ---- Correggi alimenti: correzioni sovrapposte ai cataloghi (lib.foodEdits). File e DB del motore invariati.
@@ -990,11 +1009,20 @@ async function startCam(){
     scan=s;
   }catch(e){if(tk!==scanToken)return;$("vf").classList.add("off");setScanStatus(e.message||"Fotocamera non disponibile.")}
 }
+// Lo scanner copre il pannello: il resto diventa inerte e il fuoco torna al pulsante all'uscita.
+function scanBehind(){return[$("sheetH"),$("sheetB"),document.querySelector(".sheet-f")]}
 function openScanner(){
   $("scanner").classList.remove("hide");$("prod").innerHTML="";$("codeIn").value="";
+  scanBehind().forEach(e=>e&&(e.inert=true));
+  const sh=document.querySelector("#scanner h3");sh.tabIndex=-1;sh.focus({preventScroll:true});
   startCam();
 }
-function closeScanner(){stopCam();$("scanner").classList.add("hide")}
+function closeScanner(){
+  stopCam();const was=!$("scanner").classList.contains("hide");
+  $("scanner").classList.add("hide");scanBehind().forEach(e=>e&&(e.inert=false));
+  if(was&&sheetOpen)$("scanBtn").focus({preventScroll:true});
+}
+function scannerOpen(){return!$("scanner").classList.contains("hide")}
 $("scanBtn").onclick=openScanner;
 $("scanBack").onclick=closeScanner;
 document.addEventListener("visibilitychange",()=>{
@@ -1157,3 +1185,11 @@ render();renderCur();checkKey();renderLibPanels();
 // catalogo esterno in background: la ricerca lo usa appena è pronto
 loadPortions().then(()=>{if(sheetOpen)renderSug();if(cur.length)renderCur()});
 loadCatalog().then(()=>{if(sheetOpen)renderSug();cur.forEach(i=>{if(i.cid&&!i.units){const u=unitsFor(i);if(u)i.units=u}});if(cur.length)renderCur()});
+// Un'altra scheda o finestra di Carbo ha salvato: rileggo i dati invece di sovrascriverli al prossimo salvataggio.
+// Il piatto in corso (non ancora salvato) resta com'è.
+window.addEventListener("storage",e=>{
+  const meals=e.key==="carbo"||e.key===null,lb=e.key==="carbo_lib"||e.key===null;
+  if(meals){const l=lsGet();state=l&&l.meals?l:{meals:[],goal:null};if(editId&&!state.meals.some(m=>m.id===editId))editId=null;render()}
+  if(lb){lib=loadLib();setFoodEdits(lib.foodEdits);renderLibPanels();if(sheetOpen)renderSug()}
+  if(meals||lb)toast("Dati aggiornati da un'altra finestra di Carbo");
+});

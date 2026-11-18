@@ -15,7 +15,7 @@ import { dirname, join } from "node:path";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
 const CSV = join(HERE, "alimenti-crea.csv");
-const OUT = join(ROOT, "beta", "data", "foods-crea.json");
+const OUT = join(ROOT, "beta", "data", "fonti", "foods-crea.json"); // completo; la versione per l'app la scrive tools/slim/build.mjs
 const REPORT = join(HERE, "REPORT.md");
 const FILE_NAME = "database_alimenti.xlsx";
 
