@@ -4,6 +4,7 @@ import{exportBackup,lastBackup,saveFile,APP_VERSION}from"./data/backup.js";
 import{startScanner,isValidCode,cleanCode,normalizeCode}from"./lib/barcode.js";
 import{lookupProduct,rememberProduct,productLabel,cleanPz,pzPlural}from"./data/products.js";
 import{REM_TYPES,loadRem,saveRem,dueReminder,snooze,buildICS}from"./features/reminders.js";
+import{saveSafety,readSafety,restoreSafety,scheduleSafety,storageLooksCleared,setSafetyHold}from"./data/idb.js";
 import{loadLib,saveLib,isReadOnly,snapFood,findFav,addFav,removeFav,pushRecents,recipeStats,newRecipe,recipePlateItem}from"./data/library.js";
 import{loadCatalog,catalogFoods,catByCid,SRC_LABEL,srcOf,loadPortions,portionsFor,portionSourceText,setFoodEdits,catAll,catOriginal,cleanFoodEdit}from"./data/catalog.js";
 import{parseBackup,mergePreview,mergeInto,replaceWith,saveSafetyCopy,safetyCopy,restoreSafetyCopy}from"./data/restore.js";
@@ -13,7 +14,7 @@ const $=id=>document.getElementById(id);
 let cur=[];
 let state={meals:[],goal:null};
 let lib=loadLib();
-const persistLib=()=>{if(!saveLib(lib)&&isReadOnly())toast("Libreria creata da una versione più recente: modifiche non salvate")};
+const persistLib=()=>{if(!saveLib(lib)&&isReadOnly())toast("Libreria creata da una versione più recente: modifiche non salvate");scheduleSafety()};
 // Correzioni dell'utente alle voci del database interno ("db:<nome>" in lib.foodEdits).
 // fooddb.js e ai.js restano invariati: la correzione si applica DOPO, al valore usato nel piatto
 // (ricerca, cambio voce, crudo/cotto, risultati di foto e descrizioni che riconoscono la voce).
@@ -51,7 +52,7 @@ const I_CHEV=ico('<path d="m9 6 6 6-6 6"/>',16);
 const fmt=x=>String(r1(x)).replace(".",",");
 
 function lsGet(){try{return JSON.parse(localStorage.getItem("carbo")||"null")}catch(e){return null}}
-function persist(){try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){}}
+function persist(){try{localStorage.setItem("carbo",JSON.stringify(state))}catch(e){}scheduleSafety()}
 function mealType(){const c=document.querySelector('input[name=mt]:checked');return c?c.value:"Pranzo"}
 function defaultType(){const h=new Date().getHours();return h<10?"Colazione":h<15?"Pranzo":h<18?"Spuntino":"Cena"}
 function setType(t){const r=document.querySelector('input[name=mt][value="'+t+'"]');if(r)r.checked=true}
@@ -728,6 +729,28 @@ $("undoRestore").onclick=()=>{
   render();renderLibPanels();renderUndoRestore();
   $("bkMsg").className="msg ok";$("bkMsg").textContent=`Dati riportati a prima del ripristino: ${pl(state.meals.length,"pasto","pasti")}.`;
 };
+// ---- Copia di sicurezza in IndexedDB: offerta di recupero e stato in Impostazioni → Dati
+const hm=ts=>new Date(ts).toLocaleString("it-IT",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+function showSafetyOffer(c){
+  $("safeTxt").textContent=`I dati di Carbo su questo telefono risultano vuoti, ma c'è una copia di sicurezza del ${hm(c.ts)} con ${pl(c.meals,"pasto","pasti")}. Vuoi recuperarla?`;
+  $("safeBox").classList.remove("hide");
+}
+$("safeYes").onclick=async()=>{
+  const c=await restoreSafety();
+  if(!c){$("safeTxt").textContent="Non sono riuscito a recuperare la copia. Riprova o usa un backup.";return}
+  setSafetyHold(false);$("safeBox").classList.add("hide");
+  const l=lsGet();state=l&&l.meals?l:{meals:[],goal:null};lib=loadLib();
+  render();renderLibPanels();toast(`Recuperati ${pl(state.meals.length,"pasto","pasti")} dalla copia di sicurezza`);
+};
+$("safeNo").onclick=()=>{
+  const b=$("safeNo");
+  if(!b.dataset.arm){b.dataset.arm="1";b.textContent="Tocca di nuovo: la copia verrà sostituita";setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent="Inizia da zero"}},5000);return}
+  setSafetyHold(false);$("safeBox").classList.add("hide");
+};
+async function renderSafetyStatus(){
+  const c=await readSafety(),m=$("idbMsg");if(!m)return;
+  m.textContent=c?`Copia di sicurezza automatica sul telefono: ${hm(c.ts)}, ${pl(c.meals,"pasto","pasti")}. Serve se il telefono cancella i dati dell'app; non sostituisce il backup.`:"Copia di sicurezza automatica: non ancora disponibile su questo telefono.";
+}
 // ---- Altro: archiviazione persistente. Chiede al browser di non cancellare i dati quando manca spazio.
 async function checkStorage(ask){
   const m=$("stMsg");if(!navigator.storage||!navigator.storage.persisted){m.textContent="";return}
@@ -789,7 +812,7 @@ function saveFoodEdit(cid,e,msg){
   if(!lib.foodEdits)lib.foodEdits={};
   if(e)lib.foodEdits[cid]={...e,at:Date.now()};else delete lib.foodEdits[cid];
   if(!saveLib(lib)){toast(isReadOnly()?"Libreria creata da una versione più recente: modifiche non salvate":"Non sono riuscito a salvare la correzione.");lib=loadLib();setFoodEdits(lib.foodEdits);renderFoodPanel();return false}
-  setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();renderFoodPanel();renderSug();
+  scheduleSafety();setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();renderFoodPanel();renderSug();
   if(msg)toast(msg);return true;
 }
 $("fq").addEventListener("input",renderFoodPanel);
@@ -868,7 +891,7 @@ function rcpHTML(r,open){
   </div></details>`;
 }
 function renderLibPanels(){
-  setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();
+  setFoodEdits(lib.foodEdits);$("foodCount").textContent=foodCountText();renderSafetyStatus();
   $("favCount").textContent=lib.favorites.length||"";
   $("rcpCount").textContent=lib.recipes.length||"";
   const op=openIds();
@@ -1121,6 +1144,11 @@ if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(
 // niente zoom nell'app: Safari iOS ignora user-scalable=no, quindi si blocca il gesto di pinch (il doppio tocco è gestito da touch-action nel CSS)
 ["gesturestart","gesturechange"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+// copia di sicurezza (IndexedDB): se Safari ha svuotato localStorage, propone di recuperare; altrimenti aggiorna la copia
+const _cleared=storageLooksCleared();
+if(_cleared){setSafetyHold(true);readSafety().then(c=>{if(c&&(c.meals>0||c.carbo_lib))showSafetyOffer(c);else setSafetyHold(false)})}
+else setTimeout(saveSafety,3000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")saveSafety()});
 const _l=lsGet();if(_l&&_l.meals)state=_l;
 setType(defaultType());
 showLastBackup();renderUndoRestore();checkStorage(false);

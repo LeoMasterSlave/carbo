@@ -19,6 +19,7 @@
 <main id="main">
 <section id="v-oggi" class="view">
   <h1 class="sr">Oggi</h1>
+  <div class="notice hide" id="safeBox" role="alert"><p id="safeTxt"></p><div class="acts2"><button class="pri" type="button" id="safeYes">Recupera</button><button class="sec-btn" type="button" id="safeNo">Inizia da zero</button></div></div>
   <div class="hero">
     <div class="hrow"><p class="dateline" id="date"></p>
       <label class="goal">Obiettivo <input id="goal" type="number" inputmode="numeric" placeholder="—" aria-label="Obiettivo giornaliero in grammi"><span>g</span></label></div>
@@ -88,6 +89,7 @@
     <div class="rsbox hide" id="rsPrev" role="region" aria-label="Anteprima del backup" aria-live="polite"></div>
     <p class="msg" id="bkMsg" role="status" aria-live="polite"></p>
     <p class="msg" id="stMsg" role="status"></p>
+    <p class="msg" id="idbMsg" role="status"></p>
     <p class="msg" id="wipeMsg" role="status" aria-live="polite">I pasti sono salvati solo su questo telefono.</p>
   </div>
   <div class="group"><h2>Applicazione</h2>
