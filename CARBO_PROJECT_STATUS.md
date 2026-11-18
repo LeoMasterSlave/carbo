@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.16`, pubblicata su `/carbo/beta/` il 18/11/2026 (Correggi alimenti §9.16; SW v25, commit `e4f3429`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
+Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.17`, pubblicata su `/carbo/beta/` il 18/11/2026 (Correggi alimenti per tutti gli alimenti §9.16; SW v26, commit `680263a`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -158,7 +158,8 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
 
 - Roadmap e percentuali: vedi §10.
 - Completato: Fasi 0–3 (audit; moduli + export; preferiti/recenti/ricette; barcode + promemoria) e i pezzi/porzioni per i prodotti.
-- Fase D: catalogo USDA (§9.10) e porzioni LARN (§9.11) integrati. Resta solo CREA, bloccato.
+- Fase D completata nel browser: USDA (§9.10), LARN (§9.11), elenco utente (§9.12), CREA (§9.13).
+- Aggiunte fuori roadmap (18/11/2026, richieste dall'utente): Descrivi il piatto (§9.14), mini chat con l'AI (§9.15), Correggi alimenti per tutti gli alimenti (§9.16).
 - Pubblicate: alpha.5 (`c83e149`, 16/11/2026), alpha.6 (`1d5942a`, 17/11/2026).
 - Fase 4: 5 attività su 6 fatte e verificate nel browser in alpha.7, pubblicata il 17/11/2026 (§4.1). IndexedDB in attesa di decisione.
 - In attesa: test della beta su iPhone da parte dell'utente.
@@ -172,22 +173,23 @@ Foto → stima AI dei carboidrati, correzione tramite DB, conferme bloccanti, cr
   7. Open Food Facts spesso non ha il peso del pezzo: in quel caso lo inserisce l'utente, e viene ricordato.
   8. `app.js` (~47 KB) e `app.css` sono file unici, più grandi della suddivisione prevista nella Fase 0.
   9. Nessun test automatico versionato.
-  10. Catalogo piccolo (9 voci): utile solo per frutta mancante dal DB. CREA bloccato in attesa dei diritti.
+  10. ~~Catalogo piccolo~~: ora 1090 alimenti (DB interno 92 + USDA 9 + CREA 831 + elenco utente 158). Nomi CREA tecnici ("Pere, fresche, Abate Fetel"): la ricerca "mela" non trova le "Mele" CREA.
+  13. Le funzioni AI aggiunte il 18/11 (Descrivi, mini chat) sono provate solo con risposte simulate: manca la prova con una chiave reale.
   11. Nel piatto i chip delle porzioni vanno a capo uno per riga su telefono (colonna del nome stretta): funzionano, ma l'impaginazione si può migliorare.
   12. Se dopo aver scelto una porzione si inseriscono grammi a mano, il chip resta evidenziato come unità di riferimento (comportamento voluto, ma da valutare con l'utente).
 
 ## 7. Prossimi interventi (priorità)
 
-1. Correggere quello che emerge dai test su iPhone.
-2. Provare alpha.7 (Fase 4) su iPhone: è pubblicata.
-3. Fase 4, ultima attività: IndexedDB. Decisione dell'utente richiesta (§4.1): proposta = copia di sicurezza in IndexedDB ora, migrazione vera alla promozione.
-4. Fase 5: rifinitura e accessibilità, poi promozione della beta a produzione (sostituire la root con `beta/` togliendo le differenze "Beta"). ❓ Il contenuto preciso della Fase 5 non è documentato qui.
+1. Fase V: prova su iPhone di alpha.17 con chiave reale (Descrivi, mini chat, CREA, Correggi alimenti) e delle 5 voci di V; correggere quello che emerge.
+2. Fase 4, ultima attività: IndexedDB. Decisione dell'utente richiesta (§4.1): proposta = copia di sicurezza in IndexedDB ora, migrazione vera alla promozione.
+3. Fase 5: rifinitura e accessibilità, test finale, promozione della beta a produzione (sostituire la root con `beta/` togliendo le differenze "Beta"; richiede l'approvazione dell'utente).
+4. Dati: pasta fresca e ripiena da rivedere con una fonte (§9.12); sinonimi comuni per i nomi CREA (es. "mela" → "Mele, fresche…").
 5. Facoltativo: suite di regressione del motore AI nel repo.
-6. Fase D: provare alpha.6 su iPhone (catalogo USDA e porzioni LARN); contattare CREA-AN per i diritti di riuso. Eventuale ampliamento della selezione USDA (solo alimenti "neutri" assenti dal DB).
 
 ## 8. Decisioni e vincoli
 
-- Evoluzione, non riscrittura. Motore AI invariato e usato solo tramite `analyzePhoto`.
+- Evoluzione, non riscrittura. Motore AI invariato (`ai.js`, `fooddb.js`) e usato tramite `analyzePhoto`; le descrizioni passano da `describe.js`, che riusa chiave, modelli e `fromAI` senza modificarli.
+- Dal 18/11/2026 (alpha.17, scelta dell'utente): le correzioni dell'utente alle voci del DB interno si applicano **dopo** il motore, al valore usato nel piatto, anche per foto e descrizioni. Il motore e i suoi file restano identici (hash `5a9885b0`, 133,1 g); cambia il risultato mostrato solo se l'utente ha corretto quella voce.
 - Nessuna build e nessun framework: moduli ES serviti direttamente da Pages.
 - Mai perdere i dati: formato additivo, niente rinomina delle chiavi, dati corrotti messi da parte e non cancellati, e prima di ogni migrazione un backup.
 - Snapshot nutrizionale obbligatorio nei pasti.
@@ -451,7 +453,8 @@ Discrepanze da tenere presenti:
 ### 9.16 Correggi alimenti (18/11/2026) — verificato nel browser e online, alpha.16
 - Impostazioni → Alimenti → **Correggi alimenti**: cerca tra le voci dei cataloghi (CREA, stime, etichette, USDA), modifica nome, carboidrati/100 e porzioni, oppure nascondi le voci obsolete; "Ripristina l'originale" toglie la correzione. Filtro "Solo corretti o nascosti".
 - Le correzioni stanno in `carbo_lib.foodEdits` (`{cid: {n?, c100?, units?, hidden?, at}}`) e vengono sovrapposte ai file al caricamento (`catalog.js`: `setFoodEdits`, `catAll`, `catOriginal`). I file JSON e il DB del motore non cambiano; le voci nascoste restano leggibili per i riferimenti esistenti.
-- Il database interno di Carbo non si corregge da qui (corregge le stime dell'AI): scelta per non alterare i calcoli del motore. Alternativa indicata nel pannello: preferito con il valore giusto.
+- ~~Il database interno di Carbo non si corregge da qui~~ — alpha.17: su richiesta dell'utente ("rendi tutto modificabile") anche le 92 voci del DB interno si correggono (chiave `db:<nome>`). In `app.js`: `fixDb` applica la correzione dopo `fromDB`/`fromAI`/cambio voce/crudo-cotto; ricerca con nome e valore corretti, voci nascoste escluse; porzioni corrette da `portionsFor`. Preferiti, recenti e pasti conservano il loro valore. Il cambio crudo↔cotto converte i grammi con i valori originali del DB.
+- ✅ alpha.17 nel browser: Pane 55 → 50 in ricerca ("modificato"), nel piatto con le porzioni, e sul risultato di una foto (UI 50; motore invariato: hash `5a9885b0`, 133,1 g, Pane 55 dentro il motore); pasti invariati; nessun errore. ✅ Online: SW v26.
 - Ricerca: le voci corrette mostrano "modificato"; i pasti già salvati, i preferiti e i recenti conservano i loro valori (regola dello snapshot).
 - Backup: `foodEdits` è nel backup (dentro `library`). Unisci: aggiunge le correzioni mancanti, quelle attuali vincono. Sostituisci: prende quelle del backup; un backup precedente ad alpha.16 (senza il campo) lascia quelle attuali.
 - ✅ Browser (375 px): correzione salvata e ricaricata, porzioni duplicate unite, voce corretta nel piatto con il nuovo valore, voce nascosta assente dalla ricerca, ripristino, validazione (0–100), backup → parse → unisci con le correzioni, pasti invariati, nessun errore. ✅ Online: SW v25, alpha.16, pannello funzionante.
@@ -477,7 +480,7 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - Bloccato: V dipende dall'utente.
 - Dipendenze: la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. provare alpha.16 su iPhone con una chiave reale: "Descrivi il piatto", mini chat (foto e descrizione), ricerca di voci CREA, Correggi alimenti;
+  1. provare alpha.17 su iPhone con una chiave reale: "Descrivi il piatto", mini chat (foto e descrizione), ricerca di voci CREA, Correggi alimenti;
   2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
   3. decidere su IndexedDB (§4.1), poi Fase 5.
 
@@ -493,3 +496,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 18/11/2026: alpha.13 — "Descrivi il piatto" (§9.14) e catalogo CREA da `database_alimenti.xlsx` (§9.13, import deciso dall'utente). alpha.14 — valori CREA normalizzati ad amido + zuccheri (regola §9.5.2, dimenticata in alpha.13). Verificate nel browser e online (commit `328199d`, `7c34b53`; SW v23). Fase D completata.
 - 18/11/2026: alpha.15 — mini chat per rispondere alle domande dell'AI dopo foto o descrizione (§9.15). Verificata nel browser con AI simulata e online (commit `fe38711`, SW v24).
 - 18/11/2026: alpha.16 — Correggi alimenti: correzioni e voci nascoste per i cataloghi, nel backup (§9.16). Verificata nel browser e online (commit `e4f3429`, SW v25). Spiegato all'utente che più chiavi API non migliorano la precisione.
+- 18/11/2026: alpha.17 — "rendi tutto modificabile": correzioni anche per il DB interno, applicate dopo il motore (§8, §9.16). Verificata nel browser e online (commit `680263a`, SW v26).
