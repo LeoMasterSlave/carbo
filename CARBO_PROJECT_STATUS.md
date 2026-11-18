@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.20`, pubblicata su `/carbo/beta/` il 18/11/2026 (Fase 5.5–5.10 §11; SW v29, commit `276120e`; piano di promozione in `PIANO_PROMOZIONE.md`, da approvare). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
+Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.21`, pubblicata su `/carbo/beta/` il 18/11/2026 (nuova pagina Oggi; Fase 5.5–5.10 §11; SW v30, commit `2094fea`; piano di promozione in `PIANO_PROMOZIONE.md`, da approvare). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -482,7 +482,7 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 
 - Fase attuale: **5 – Rilascio**, 62% (8/13). In parallelo **V – Validazione iPhone**, 0/5 spuntate (dipende dall'utente).
 - Bloccato: 5.6 (prova VoiceOver), 5.10 (avvio su iPhone) e 5.11 aspettano V su iPhone; 5.12 aspetta l'approvazione del piano; 5.13 aspetta 5.11, 5.12 e il "promuovi" esplicito.
-- Prossimo intervento: dipende dall'utente (V su iPhone, approvazione del piano). Proposte per la pagina Oggi richieste dall'utente il 18/11.
+- Prossimo intervento: dipende dall'utente (V su iPhone con la nuova pagina Oggi, approvazione del piano di promozione).
 
 ## 11. Fase 5 — piano di rilascio (18/11/2026)
 
@@ -550,3 +550,4 @@ Ogni voce è chiusa solo quando il criterio è verificato e annotato qui. Nessun
 - 18/11/2026: Fase 5 riscritta in 13 voci con criteri (§11) e audit misurato (5.1 ✅). Proposte tre direzioni di identità (Terracotta, Salvia, Mediterraneo) con contrasti verificati (testo ≥ 5,8:1, bordi controlli ≥ 3,2:1 in chiaro e scuro). Complessivo ricalcolato: 37/54 = 69%.
 - 18/11/2026: alpha.19 — identità Terracotta (scelta dall'utente), bordi dei controlli ≥ 3:1, aree di tocco 44 px, testo ≥ 11 px senza opacità, icona maskable. Verificata nel browser in chiaro e scuro e online (commit `db4db7a`, SW v28). 5.2–5.4 ✅, 5.5 🟡. Complessivo 40/54 = 74%.
 - 18/11/2026: alpha.20 — l'utente chiede di finire la Fase 5. Testo che segue Dimensioni testo di iOS, dialoghi e annunci per VoiceOver, messaggi per memoria piena/offline, sincronizzazione tra schede, test automatici (32 verdi), cataloghi 408 → 188 KB, piano di promozione. Verificata nel browser e online (commit `276120e`, SW v29). Fase 5: 8/13 complete, 3 parziali, 2 in attesa dell'utente. Complessivo 44/54 = 81%. L'utente segnala che la pagina Oggi è poco utile (non usa l'obiettivo): proposte da presentare.
+- 18/11/2026: alpha.21 — nuova pagina Oggi, scelta dall'utente: grafica della proposta B con le funzioni della A. Totale del giorno, ultimi 7 giorni (colonne neutre, oggi con l'accento, media dei giorni precedenti), azioni rapide Foto/Codice/Descrivi/Cerca che aprono il pannello già sulla funzione, "Rifai in un tocco" (fino a 3 pasti dei giorni precedenti ripetuti più spesso, stessi alimenti e quantità; il tocco copia il pasto nel piatto e si conferma con Salva). L'obiettivo giornaliero passa in Impostazioni › Personalizzazione ed è facoltativo: su Oggi compare solo se impostato (dati invariati, stesso campo `goal`). Verificata nel browser con pasti di prova poi rimossi (chiaro/scuro, 375 px, testo +2, aree di tocco ≥ 44 px, nessun errore), test 32/32; pubblicata (commit `2094fea`, SW v30).
