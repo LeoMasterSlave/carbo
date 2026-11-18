@@ -476,17 +476,44 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 | V Validazione iPhone | ⬜ installazione in Home · ⬜ fotocamera/ZXing · ⬜ `.ics` · ⬜ condivisione backup · ⬜ trascinamento pannello | In attesa dell'utente | 0% (0/5) |
 | D Database alimenti | ✅ audit · ✅ decisioni · ✅ formule verificate · ✅ confronto fonti · ✅ script USDA · ✅ verifica integrazione ricerca · ✅ regola CREA (amido + zuccheri) · ✅ revisione porzioni USDA · ✅ `foods-it.json` · ✅ ricerca + suggerimenti porzione · ✅ pagina Fonti · ✅ porzioni standard LARN · ✅ elenco utente come stime (§9.12) · ✅ catalogo CREA (§9.13) | Completata (browser) | 100% (14/14) |
 | 4 Dati e Diario | ✅ ripristino verificato · ✅ `storage.persist` · ✅ calendario · ✅ copia pasto · ✅ export CSV · ✅ IndexedDB (copia di sicurezza, §4.1) | Completata (browser) | 100% (6/6) |
-| 5 Rilascio | ⬜ rifinitura e accessibilità · ⬜ test finale · ⬜ promozione di `beta/` in produzione | Pianificata | 0% (0/3) |
+| 5 Rilascio (piano dettagliato §11) | ✅ 5.1 audit misurato · ⬜ 5.2 identità visiva · ⬜ 5.3 contrasto controlli · ⬜ 5.4 aree di tocco · ⬜ 5.5 testo e dimensione di sistema · ⬜ 5.6 VoiceOver e pannelli · ⬜ 5.7 tema scuro e movimento · ⬜ 5.8 robustezza · ⬜ 5.9 test automatici · ⬜ 5.10 prestazioni · ⬜ 5.11 test finale · ⬜ 5.12 piano di promozione · ⬜ 5.13 promozione | In corso | 8% (1/13) |
 
-**Complessivo: 36/44 attività = 82%.** Restano V (5, prove su iPhone) e Fase 5 (3).
+**Complessivo: 37/54 attività = 69%.** Il 18/11/2026 la Fase 5 è passata da 3 voci generiche a 13 verificabili (§11), su richiesta dell'utente di trattarla con più serietà: per questo la percentuale scende da 82% a 69%, non perché qualcosa sia tornato indietro.
 
-- Fase attuale: **V – Validazione iPhone**, 0/5 spuntate (l'utente riferisce che le funzioni di alpha.8 funzionano su iPhone; ❓ voci non spuntate una per una). Fasi 0–4 e D completate nel browser.
-- Bloccato: V dipende dall'utente.
-- Dipendenze: la Fase 5 dipende da V.
-- Prossimo intervento:
-  1. provare alpha.18 su iPhone con una chiave reale e spuntare le 5 voci di V;
-  2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
-  3. Fase 5: rifinitura e accessibilità, test finale, promozione (con approvazione).
+- Fase attuale: **5 – Rilascio**, 8% (1/13). In parallelo **V – Validazione iPhone**, 0/5 spuntate (dipende dall'utente).
+- Bloccato: 5.2 aspetta la scelta della direzione di identità; 5.11–5.13 aspettano V.
+- Prossimo intervento: 5.2 → 5.3–5.7 (insieme, toccano gli stessi file CSS), poi 5.8–5.10.
+
+## 11. Fase 5 — piano di rilascio (18/11/2026)
+
+Ogni voce è chiusa solo quando il criterio è verificato e annotato qui. Nessuna voce tocca `ai.js`, `fooddb.js` o i pasti salvati. La produzione (`/carbo/`) cambia solo in 5.13 e solo con approvazione esplicita.
+
+### 5.1 Audit misurato — ✅ (browser, 375 px, alpha.18)
+- Contrasto testo: tutto ≥ 4,5:1 (minimo: grigio secondario su sfondo chiaro 4,98:1; scuro 6,48:1). ✅
+- **Bordi dei campi e dei controlli: 1,34:1 (chiaro) e 1,42:1 (scuro)**, sotto il 3:1 richiesto per i componenti (WCAG 1.4.11). Campi e pulsanti secondari si vedono poco.
+- **Aree di tocco sotto 44 px:** selettore del tipo di pasto (32 px di altezza), chiudi del pannello (35×35), link "Impostala" (35), "Alimento non in elenco" (39), "Come ottenere una chiave" (40), link aistudio (19), "Aggiungi" e "Salva pasto" (43).
+- **Testo piccolo:** 10–11 px in 10 regole CSS (etichette di provenienza, calendario, barra di navigazione, avvertenze `.note.fine` a 10 px con opacità 0,8, che abbassa anche il contrasto).
+- **Dimensione del testo di sistema ignorata:** tutte le misure in px fisse; chi ingrandisce il testo su iPhone non vede differenze.
+- Struttura: `lang="it"`, titoli h1/h2 presenti, nessuna immagine senza alt, nessun pulsante senza nome, nessun campo senza etichetta. ✅
+- Manifest: nome "Carbo Beta", `background_color` scuro anche con tema chiaro, icone non "maskable".
+- Peso: `app.js` 82 KB in un file; cataloghi precaricati 401 KB (CREA 280 KB, stime 121 KB, in gran parte dati di provenienza `src.orig` non usati dall'interfaccia); scanner 329 KB caricato solo all'uso.
+- Rischi noti per la promozione: il SW v1 cancella le cache diverse da `carbo-v8`; `localStorage` condiviso tra v1 e beta; due schede aperte si sovrascrivono; nessun test automatico.
+
+### Voci e criteri di accettazione
+| # | Voce | Criterio di "fatto" |
+|---|---|---|
+| 5.2 | Identità visiva | Direzione scelta dall'utente (A Terracotta · B Salvia · C Mediterraneo, proposte il 18/11); token chiaro/scuro applicati; nome "Carbo" senza "Beta" solo alla promozione; icona 180/192/512 + maskable; `theme-color` e manifest coerenti con il tema. |
+| 5.3 | Contrasto controlli | Bordi di campi, pulsanti secondari, chip e interruttori ≥ 3:1 in chiaro e scuro (token `--line-strong`); filetti decorativi possono restare tenui. Misurato con lo script dell'audit. |
+| 5.4 | Aree di tocco | Ogni elemento interattivo ≥ 44×44 px (o area estesa con padding), misurato in tutte le schermate e pannelli. |
+| 5.5 | Testo | Minimo 11 px, nessuna opacità sul testo; le dimensioni seguono "Dimensioni testo" di iOS fino a +2 passi senza tagli né sovrapposizioni a 375 px. |
+| 5.6 | VoiceOver e pannelli | Pannello Aggiungi, scanner e conferme come dialoghi modali (focus dentro, ritorno al pulsante che li ha aperti, Esc/chiudi); annunci per totale, errori e risultati AI; ordine di lettura logico. Prova reale con VoiceOver su iPhone. |
+| 5.7 | Tema scuro e movimento | Ogni schermata controllata in scuro; con "Riduci movimento" niente animazioni di ingresso o di scorrimento. |
+| 5.8 | Robustezza | Messaggi chiari per: rete assente, memoria piena (salvataggio fallito), chiave AI scaduta; avviso se un'altra scheda ha modificato i dati (evento `storage`) invece di sovrascriverli. |
+| 5.9 | Test automatici | `tools/test/` eseguibile con `node`: hash del prompt e totale del motore (`5a9885b0`/133,1), backup → ripristino → stessi dati, correzioni alimenti, normalizzazione CREA, migrazione della libreria. Tutti verdi prima di 5.13. |
+| 5.10 | Prestazioni | Cataloghi senza `src.orig` nel file usato dall'app (provenienza in un file a parte, scaricato solo dalla pagina Fonti): obiettivo < 200 KB precaricati; avvio misurato su iPhone. |
+| 5.11 | Test finale | Checklist completa su iPhone (Safari e app nella Home, chiaro/scuro, offline, con un backup reale) e su un browser desktop; ogni voce annotata qui. Richiede V completata. |
+| 5.12 | Piano di promozione | Documento con: differenze beta/root, passaggio del SW da `carbo-v8` alla nuova app senza perdere la riserva offline, migrazione `localStorage` → IndexedDB come archivio principale con backup automatico prima, piano di ritorno indietro in un passo, cosa vede chi ha la v1 installata. Approvato dall'utente. |
+| 5.13 | Promozione | Eseguita solo dopo approvazione esplicita; verificata online su `/carbo/` e su iPhone; la beta resta raggiungibile per un periodo di sicurezza. |
 
 ### Registro sessioni
 - 16/11/2026: Fasi 0–3; beta pubblicata in `/carbo/beta/`; pezzi/porzioni; report creato; audit del DB alimenti; fattibilità USDA (script + 13 candidati + confronti); regola CREA decisa: amido + zuccheri; catalogo USDA (9 voci) integrato in ricerca, chip porzioni, pagina Fonti, verificato nel browser; alpha.5 pubblicata (commit `c83e149`).
@@ -502,3 +529,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 18/11/2026: alpha.16 — Correggi alimenti: correzioni e voci nascoste per i cataloghi, nel backup (§9.16). Verificata nel browser e online (commit `e4f3429`, SW v25). Spiegato all'utente che più chiavi API non migliorano la precisione.
 - 18/11/2026: alpha.17 — "rendi tutto modificabile": correzioni anche per il DB interno, applicate dopo il motore (§8, §9.16). Verificata nel browser e online (commit `680263a`, SW v26).
 - 18/11/2026: alpha.18 — IndexedDB come copia di sicurezza automatica con recupero (§4.1, approvato dall'utente). Verificata nel browser e online (commit `0996043`, SW v27). Fase 4 completata: 36/44 = 82%.
+- 18/11/2026: Fase 5 riscritta in 13 voci con criteri (§11) e audit misurato (5.1 ✅). Proposte tre direzioni di identità (Terracotta, Salvia, Mediterraneo) con contrasti verificati (testo ≥ 5,8:1, bordi controlli ≥ 3,2:1 in chiaro e scuro). Complessivo ricalcolato: 37/54 = 69%.
