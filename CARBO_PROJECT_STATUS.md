@@ -1,6 +1,6 @@
 # Carbo — stato del progetto
 
-Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.14`, pubblicata su `/carbo/beta/` il 18/11/2026 (SW v23, commit `7c34b53`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
+Ultimo aggiornamento: 18/11/2026 (Descrivi il piatto §9.14; catalogo CREA §9.13; roadmap §10) · versione beta `2.0.0-alpha.15`, pubblicata su `/carbo/beta/` il 18/11/2026 (mini chat con l'AI §9.15; SW v24, commit `fe38711`). Regola dell'utente: pubblicare la beta dopo ogni modifica verificata
 Legenda: ✅ implementato e verificato · 🟡 implementato, non verificato su iPhone · ⏳ pianificato · ❓ non verificato
 
 ## 1. Stack e struttura
@@ -441,6 +441,13 @@ Discrepanze da tenere presenti:
 - Interfaccia: pulsante "Descrivi il piatto" sotto Foto/Codice a barre → campo (es. "kebab medio") + "Stima i carboidrati". Le voci si **aggiungono** al piatto con il tag di confidenza; quantità non indicata → porzione media con "confidenza bassa" e nota. Niente si salva prima di "Salva pasto".
 - ❓ Non provato con una chiave reale né su iPhone.
 
+### 9.15 Mini chat con l'AI (18/11/2026) — verificata nel browser (AI simulata) e online, alpha.15
+- Dopo una foto o una descrizione, se l'AI ha dubbi compare una piccola chat sotto il messaggio: al massimo 3 domande per giro e 2 giri.
+- Domande: la "domanda" dell'AI (con il nome dell'alimento); "Cos'è di preciso…?" solo se l'AI non ha riconosciuto l'alimento con sicurezza; "Quanto ne hai mangiato…?" se la quantità è incerta o manca.
+- Risposte: si scrive e si invia, oppure "Non lo so" / "Va bene così". Dopo l'ultima risposta la stima si rifà: per le foto le risposte entrano nell'indizio di `analyzePhoto` (`ai.js` invariato, hash `5a9885b0` con indizio vuoto); per le descrizioni vanno a `describeMeal` come chiarimenti.
+- Si sostituiscono solo le voci di quella foto o di quella descrizione (`via`/`batch`, campi solo di interfaccia, non salvati). Corretto anche: una nuova foto non cancella più le voci da descrizione.
+- ✅ Browser: domanda → risposta → stima aggiornata (descrizione e foto), "Non lo so" senza nuova chiamata, 375 px senza overflow, pasti salvati invariati, nessun errore. ✅ Online: SW v24, alpha.15. ❓ Non provata con una chiave reale né su iPhone.
+
 ## 10. Roadmap generale
 
 Le percentuali sono calcolate così: attività concluse e verificate ÷ attività della fase. "Verificata" significa provata nel browser (Claude Browser) o con un test; la verifica su iPhone è una fase a sé (V).
@@ -462,7 +469,7 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - Bloccato: V dipende dall'utente.
 - Dipendenze: la Fase 5 dipende da V e dalla Fase 4.
 - Prossimo intervento:
-  1. provare alpha.14 su iPhone: "Descrivi il piatto" con una chiave reale, ricerca di voci CREA;
+  1. provare alpha.15 su iPhone con una chiave reale: "Descrivi il piatto", mini chat (foto e descrizione), ricerca di voci CREA;
   2. rivedere la pasta fresca e ripiena con una fonte (etichetta o tabella), poi reimportarla;
   3. decidere su IndexedDB (§4.1), poi Fase 5.
 
@@ -476,3 +483,4 @@ Le percentuali sono calcolate così: attività concluse e verificate ÷ attivit�
 - 17/11/2026: alpha.11 in locale — "Altro" diventa "Impostazioni"; nuova pagina Crediti e avvertenze con l'avvertenza AI (tolta dal pannello Aggiungi). Verificata nel browser (375 px, navigazione tra i pannelli, nessun errore); pubblicata (commit `805750c`) e verificata online (SW v20, scheda "Impostazioni", nessun errore). 
 - 17/11/2026: alpha.12 — alimento del piatto ridotto a nome + carboidrati dopo la scelta. Verificata nel browser (porzione → ridotto, riapertura, +/−, campo grammi che non sparisce mentre si scrive, salvataggio senza campi nuovi, motore AI `5a9885b0`/133,1 g, nessun errore); pubblicata.
 - 18/11/2026: alpha.13 — "Descrivi il piatto" (§9.14) e catalogo CREA da `database_alimenti.xlsx` (§9.13, import deciso dall'utente). alpha.14 — valori CREA normalizzati ad amido + zuccheri (regola §9.5.2, dimenticata in alpha.13). Verificate nel browser e online (commit `328199d`, `7c34b53`; SW v23). Fase D completata.
+- 18/11/2026: alpha.15 — mini chat per rispondere alle domande dell'AI dopo foto o descrizione (§9.15). Verificata nel browser con AI simulata e online (commit `fe38711`, SW v24).
